@@ -18,8 +18,9 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **1 — app shell** | **done** — `AppBar` + `BottomNav`, scroll-spy, hairline, hide-on-scroll |
 | **2a skeleton** | **done** — left-aligned hero + chip, `::after` section rules, Part-2 band deleted, 65ch measure |
 | **2b solve surface** | **done** — borderless tonal cards, given card, solid step circles, math surfaces, flat answer card + badge, the duplicate "Answer" step removed from the content |
-| **2c quiz · 2d walkthrough** | not started |
-| 3–7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** |
+| **2c quiz · 2d walkthrough** | **done** — outlined options with key circles + primary state layer, lock-after-answer, live feedback bars; the walkthrough (reveal, dots, live count, Show all → Show answer → Restart, per-question persistence) |
+| **3a produce layout + device chrome** | **done** — `minmax(320px,400px)` grid at 900px, tonal device card, aspect pill (+ `sessionStorage`), frame-only dark surface, progressive track with native range, 44px controls, mono timecode, tool row below the frame |
+| 3b–7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
 the mock's exact values, what the live build measures today, the required change, the

@@ -5,6 +5,11 @@
 // Copy actions emit test-renderer's exact paste format (fenced blocks with
 // <title> + <!-- ds --> + <!-- dur --> markers), so code copied here pastes
 // seamlessly into test-renderer's AI tab — code, name, aspect AND duration.
+//
+// Chrome follows the reference mock's device card: a tonal card whose only dark
+// surface is the frame, an aspect pill in the bar, 44px round controls with a
+// glyph per data-state, and the product actions (copy code / AI prompt /
+// renderer) on their own row so they never crowd the player.
 import { compileStoryboard } from '../../../runtime/hic-storyboard.esm.js';
 import { clipToFenced, buildAiPrompt } from '../lib/animation-prompt.js';
 
@@ -22,36 +27,84 @@ const fullPrompt = buildAiPrompt(prompt || ('Recreate the "' + title + '" explai
 const fencedJson = JSON.stringify(fenced).replace(/</g, '\\u003c');
 /* Vendor script + deep-link path must respect the deploy base (Pages). */
 const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/* "0:15" for the static total in the timecode row */
+const totalSecs = Math.round(durMs / 1000);
+const totalLabel = `${Math.floor(totalSecs / 60)}:${String(totalSecs % 60).padStart(2, '0')}`;
+const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
 ---
-<div class="stage-shell" data-title={title} data-ds={ds} data-dur={durMs}>
+<section
+  class="stage-shell"
+  data-title={title}
+  data-ds={ds}
+  data-dur={durMs}
+  data-state="idle"
+  data-aspect={ds}
+>
   <div class="stage-bar">
     <span class="label">Animation preview</span>
-    <span class="stage-controls">
-      <button id="btn-copy-code" title="Copy animation code in test-renderer paste format (HTML/CSS/JS + duration)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        <span class="lbl-default">Copy code</span><span class="lbl-copied">Copied!</span>
-      </button>
-      <button id="btn-copy-prompt" title="Copy the AI prompt that regenerates this animation (works in test-renderer too)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        <span>AI prompt</span>
-      </button>
-      <button id="btn-open-tr" title="Open this storyboard in test-renderer (same engine, WebM export, full editor)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        <span>Renderer</span>
-      </button>
-      <button id="btn-play">Play</button>
-      <button id="btn-reset">Reset</button>
-    </span>
+    <button
+      id="btn-aspect"
+      class="btn-aspect"
+      type="button"
+      aria-pressed={ds === '9:16' ? 'false' : 'true'}
+      title={ds === '9:16' ? 'Show the frame in 16:9' : 'Show the frame in 9:16'}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="7" y="3" width="10" height="18" rx="2" />
+      </svg>
+      <span class="aspect-label">{ds}</span>
+    </button>
   </div>
+
   <div class="stage-holder">
-    <canvas id={id} data-aspect={ds} width="800" height="450"></canvas>
+    <div class="stage-frame" id="stage-frame" data-aspect={ds}>
+      <canvas id={id} data-aspect={ds} width={cw} height={ch}></canvas>
+      <button id="stage-play" class="stage-play" type="button" tabindex="-1" aria-hidden="true">
+        <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg></span>
+      </button>
+    </div>
   </div>
-  <div class="scrub-row">
-    <span class="scrub-time" id="t-cur">0:00</span>
-    <input id="scrubber" type="range" min="0" max="1000" value="0" step="1" aria-label="Scrub timeline">
-    <span class="scrub-time" id="t-total">0:00</span>
+
+  <div class="progress-track" id="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+    <input id="scrubber" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek">
   </div>
-</div>
+
+  <div class="ctl-row">
+    <button id="btn-play" class="pl-btn" type="button" aria-label="Play" title="Play">
+      <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+      <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+      <svg class="i-replay" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" /></svg>
+    </button>
+    <span class="time"><span id="t-cur">0:00</span><span class="dim"> / {totalLabel}</span></span>
+    <span class="grow"></span>
+    <button id="btn-reset" class="pl-btn" type="button" aria-label="Restart from beginning" title="Restart">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
+    </button>
+  </div>
+
+  <div class="tool-row">
+    <button id="btn-copy-code" class="tool-btn" type="button"
+      title="Copy animation code in test-renderer paste format (HTML/CSS/JS + duration)"
+      aria-label="Copy animation code">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+      <span class="lbl-default">Copy code</span><span class="lbl-copied">Copied!</span>
+    </button>
+    <button id="btn-copy-prompt" class="tool-btn" type="button"
+      title="Copy the AI prompt that regenerates this animation (works in test-renderer too)"
+      aria-label="Copy AI prompt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+      <span class="lbl-default">AI prompt</span><span class="lbl-copied">Copied!</span>
+    </button>
+    <button id="btn-open-tr" class="tool-btn" type="button"
+      title="Open this storyboard in test-renderer (same engine, WebM export, full editor)"
+      aria-label="Open in renderer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+      <span class="lbl-default">Renderer</span><span class="lbl-copied">Copied!</span>
+    </button>
+  </div>
+</section>
 
 <!-- test-renderer's preview engine (HicRenderer): same SVG-foreignObject renderer,
      KaTeX/Tailwind/font embedding and frame math as the editor's canvas -->
@@ -61,14 +114,16 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
 
 <script define:vars={{ ds, durMs, title, base, fullPrompt }}>
   /* Boot test-renderer's preview engine (HicRenderer, vendored above) on the
-     compiled storyboard clip. Module-adjacent classic script: hic-frame.js is
-     a plain <script src> earlier in the document, so the factory is global. */
+     compiled storyboard clip. Module-adjacent classic script: hic-frame.js is a
+     plain <script src> earlier in the document, so the factory is global. */
   (async function boot() {
+    const shell = document.querySelector('.stage-shell');
     const stage = document.getElementById('stage');
+    const frame = document.getElementById('stage-frame');
     const btnPlay = document.getElementById('btn-play');
     const scrubber = document.getElementById('scrubber');
+    const progressFill = document.getElementById('progress-fill');
     const tCur = document.getElementById('t-cur');
-    const tTotal = document.getElementById('t-total');
     const fenced = JSON.parse(document.getElementById('hic-fenced-data').textContent);
 
     /* parse our fenced payload → {html, css, js} for HicRenderer.setClip.
@@ -79,22 +134,34 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
       let m;
       while ((m = fenceRe.exec(text)) !== null) {
         const lang = (m[1] || '').toLowerCase();
-        const code = m[2].trim();
-        if (lang === 'css') res.css += (res.css ? '\n\n' : '') + code;
-        else if (lang === 'js' || lang === 'javascript') res.js += (res.js ? '\n\n' : '') + code;
-        else res.html += (res.html ? '\n' : '') + code;
+        if (lang === 'css') res.css += (res.css ? '\n\n' : '') + m[2].trim();
+        else if (lang === 'js' || lang === 'javascript') res.js += (res.js ? '\n\n' : '') + m[2].trim();
+        else res.html += (res.html ? '\n\n' : '') + m[2].trim();
       }
       return res;
     }
 
     const parsed = parseFenced(fenced);
-    const [sw, sh] = ds === '9:16' ? [450, 800] : [800, 450];
+    let sw = ds === '9:16' ? 450 : 800;
+    let sh = ds === '9:16' ? 800 : 450;
     stage.width = sw; stage.height = sh;
     const ctx = stage.getContext('2d');
-    const fmt = (ms) => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+    const fmt = (ms) => {
+      const s = Math.floor(ms / 1000);
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    };
 
-    const renderer = window.makeHicRenderer(sw, sh, sw, sh);
+    let renderer = window.makeHicRenderer(sw, sh, sw, sh);
     await renderer.setClip(parsed.html, parsed.css, parsed.js);
+
+    /* data-state drives which glyph the play button shows and whether the
+       on-frame overlay is visible (CSS) */
+    const LABELS = { idle: 'Play', playing: 'Pause', paused: 'Resume', done: 'Replay' };
+    function setState(s) {
+      shell.dataset.state = s;
+      btnPlay.setAttribute('aria-label', LABELS[s]);
+      btnPlay.title = LABELS[s];
+    }
 
     /* ── wall-clock playback, same model as hic-modal / hic-scenes ── */
     let playing = false, raf = 0, wallStart = 0, tAtStart = 0, t = 0;
@@ -102,6 +169,7 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
       renderer.renderFrame(ms).then((ok) => { if (ok) renderer.drawTo(ctx, 0, 0, sw, sh); });
       tCur.textContent = fmt(ms);
       scrubber.value = String(Math.round(ms / durMs * 1000));
+      progressFill.style.width = (ms / durMs * 100) + '%';
     }
     function loop(now) {
       if (!playing) return;
@@ -109,7 +177,7 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
       if (t >= durMs) {
         drawAt(durMs);
         pause();
-        btnPlay.textContent = 'Replay';
+        setState('done');
         return;
       }
       drawAt(t);
@@ -119,7 +187,7 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
       if (playing) return;
       if (t >= durMs) t = 0;
       playing = true;
-      btnPlay.textContent = 'Pause';
+      setState('playing');
       wallStart = performance.now();
       tAtStart = t;
       raf = requestAnimationFrame(loop);
@@ -128,16 +196,52 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
       playing = false;
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
+      if (shell.dataset.state === 'playing') setState('paused');
     }
     btnPlay.addEventListener('click', () => (playing ? pause() : play()));
-    document.getElementById('btn-reset').addEventListener('click', () => { pause(); t = 0; drawAt(0); btnPlay.textContent = 'Play'; });
+    document.getElementById('stage-play').addEventListener('click', () => (playing ? pause() : play()));
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      pause(); t = 0; drawAt(0); setState('idle');
+    });
     scrubber.addEventListener('input', () => {
       pause();
       t = (parseFloat(scrubber.value) / 1000) * durMs;
       drawAt(t);
     });
-    tTotal.textContent = fmt(durMs);
     drawAt(0);   /* first frame onto the canvas */
+
+    /* ── aspect: re-frame the preview (the clip is re-rasterised at the new
+          size, so there is never a stretched bitmap) ── */
+    const btnAspect = document.getElementById('btn-aspect');
+    const aspectLabel = btnAspect.querySelector('.aspect-label');
+    let framing = false;
+    btnAspect.addEventListener('click', async () => {
+      if (framing) return;
+      framing = true;
+      const wide = shell.dataset.aspect === '9:16';
+      const next = wide ? '16:9' : '9:16';
+      shell.dataset.aspect = next;
+      frame.dataset.aspect = next;
+      stage.dataset.aspect = next;
+      aspectLabel.textContent = next;
+      btnAspect.setAttribute('aria-pressed', next === '16:9' ? 'true' : 'false');
+      btnAspect.title = wide ? 'Show the frame in 9:16' : 'Show the frame in 16:9';
+      sw = next === '9:16' ? 450 : 800;
+      sh = next === '9:16' ? 800 : 450;
+      stage.width = sw; stage.height = sh;
+      try { sessionStorage.setItem('iitmAspect:' + location.pathname, next); } catch (e) {}
+      const wasPlaying = playing;
+      if (wasPlaying) pause();
+      renderer = window.makeHicRenderer(sw, sh, sw, sh);
+      await renderer.setClip(parsed.html, parsed.css, parsed.js);
+      drawAt(t);
+      framing = false;
+      if (wasPlaying) play();
+    });
+    try {
+      const saved = sessionStorage.getItem('iitmAspect:' + location.pathname);
+      if (saved && saved !== ds) btnAspect.click();
+    } catch (e) {}
 
     /* ── copy actions: TR paste format + the regenerating AI prompt ── */
     function copyText(text, btn, okMs) {
@@ -162,6 +266,7 @@ const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.re
       try { trBase = localStorage.getItem('iitmTrUrl') || trBase; } catch (e) {}
       window.open(trBase + '#storyboard=' + b64, '_blank');
       void base; /* available for origin-relative TR deployments */
+      void title;
     });
 
     window.__hicFenced = fenced;   /* debug/verification handle */
