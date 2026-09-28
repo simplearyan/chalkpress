@@ -233,21 +233,30 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 
 /* problem page */
 
-.prose { max-width: 62ch; }
+.prose { max-width: var(--measure); }
 .prose p { margin: 0 0 0.85rem; }
+/* Cards are tonal, never outlined (the mock's "borderless pass"): grouping is
+   fill + space. Borders survive only on things you interact with — quiz options
+   and code blocks — and elevation is reserved for hover / raised surfaces. */
 .card {
-  background: var(--surface); border: 1px solid var(--outline-var);
-  border-radius: 14px; padding: 1.8rem 2rem; box-shadow: var(--shadow);
+  min-width: 0; max-width: 100%;
+  background: var(--container); border: 0; border-radius: 20px;
+  padding: clamp(18px, 3vw, 28px); box-shadow: none;
 }
+.card h3 { font-size: 1.125rem; font-weight: 600; }
+/* the answer is a flat primary-container block, and the page's biggest value */
 .answer-card {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, transparent), color-mix(in srgb, var(--accent) 9%, transparent));
-  border: 1px solid var(--primary); border-radius: 14px; padding: 1.5rem 1.8rem;
+  background: var(--primary-container); color: var(--on-primary-container);
+  border: 0; border-radius: 24px; padding: 20px 24px; margin-top: 8px;
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-  margin-top: 1.5rem;
 }
-.answer-card .label { font-family: var(--mono); font-size: 0.78rem; color: var(--on-variant); }
-.answer-card .value { font-family: var(--serif); font-weight: 700; font-size: 2.1rem; color: var(--primary); overflow-wrap: anywhere; }
-[data-theme="dark"] .answer-card .value { color: var(--primary); }
+.answer-card .label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; }
+.answer-card .value { font-family: var(--serif); font-weight: 600; font-size: 1.8rem; color: inherit; overflow-wrap: anywhere; }
+.answer-badge {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px;
+  border-radius: 999px; background: var(--primary); color: var(--on-primary);
+  font-weight: 500; font-size: 0.9rem;
+}
 
 .script-sheet { border-left: 3px solid var(--accent); background: var(--bg); padding: 1.2rem 1.4rem; border-radius: 0 8px 8px 0; }
 .script-sheet p { font-family: var(--serif); font-style: italic; margin: 0 0 0.65rem; color: var(--on-surface); font-size: 0.95rem; }
@@ -276,7 +285,6 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 
 @media (max-width: 639px) {
   .wrap { padding: 2.25rem var(--gutter) 3.5rem; }
-  .card { padding: 1.3rem 1.15rem; border-radius: 12px; }
   .shelf { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
 }
 
@@ -285,23 +293,36 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
    (problem-1-two-queens-one-king (5).html / problem-2-vector-check (3).html)
    ═══════════════════════════════════════════════════════════════════════ */
 
-.wrap-top { max-width: var(--container-max); margin: 0 auto; padding: 3.5rem var(--gutter) 4rem; }
+.wrap-top { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter) 3.5rem; }
 .wrap-produce { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
 
-/* centered page head (mock) */
-.wrap-top .page-head { text-align: center; max-width: none; margin-bottom: 2.25rem; }
-.wrap-top .page-head h1 { font-size: clamp(2.1rem, 4.2vw, 3.1rem); }
-.wrap-top .page-head p { font-size: 1.15rem; max-width: 40rem; margin: 0 auto; }
+/* Hero (mock): left-aligned, chip → title → one-line description. The sections
+   below own their top padding, so the wrap adds none. */
+.wrap-top .page-head { max-width: none; margin-bottom: 0; padding: clamp(32px, 6vw, 56px) 0 16px; }
+.wrap-top .page-head h1 { font-size: clamp(2.1rem, 6vw, 3.5rem); font-weight: 600; letter-spacing: -0.015em; margin: 16px 0 12px; }
+.wrap-top .page-head p { font-size: clamp(1rem, 2.4vw, 1.2rem); color: var(--on-variant); max-width: 44rem; margin: 0; }
 
-/* part headers */
-.part-head { margin-bottom: 2.2rem; }
-.part-head .kicker-sm { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
-.part-solve .part-head .kicker-sm { color: var(--primary); }
-.part-produce .part-head .kicker-sm { color: var(--accent); }
-.part-head h2 { font-size: clamp(1.6rem, 2.6vw, 2rem); font-weight: 600; padding-bottom: 0.5rem; display: inline-block; }
-.part-solve .part-head h2 { border-bottom: 3px solid var(--primary); }
-.part-produce .part-head h2 { border-bottom: 3px solid var(--accent); }
-.part-head .sub { color: var(--on-variant); font-size: 0.98rem; margin-top: 0.6rem; max-width: 46ch; }
+/* assist chip — the topic · difficulty label above the title */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
+  border-radius: 8px; background: var(--tertiary-container); color: var(--on-tertiary-container);
+  font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.02em; text-transform: capitalize;
+}
+
+/* section rhythm (mock .section) — Part 1 and Part 2 are the same surface */
+.part, .zone-produce { padding: clamp(40px, 7vw, 72px) 0 8px; }
+
+/* part headers: overline + heading + a fixed-width rule under it */
+.part-head { margin-bottom: 24px; }
+.part-head .kicker-sm { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+/* the accent can come from an ancestor section (.part-solve) or from the head
+   itself (.part-head.part-produce) depending on the surface — match both */
+.part-solve .part-head .kicker-sm, .part-head.part-solve .kicker-sm { color: var(--primary); }
+.part-produce .part-head .kicker-sm, .part-head.part-produce .kicker-sm { color: var(--accent); }
+.part-head h2 { font-size: clamp(1.6rem, 4vw, 2.25rem); font-weight: 600; line-height: 1.2; }
+.part-head h2::after { content: ''; display: block; width: 52px; height: 3px; border-radius: 3px; background: var(--primary); margin-top: 12px; }
+.part-produce .part-head h2::after, .part-head.part-produce h2::after { background: var(--accent); }
+.part-head .sub { color: var(--on-variant); font-size: 1rem; margin-top: 8px; max-width: 46rem; }
 
 /* solve layout: sticky givens beside the solution flow.
    minmax(0,·) everywhere: fr tracks auto-size to content otherwise, and
@@ -333,46 +354,64 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .try-feedback.is-correct { color: var(--success); }
 .try-feedback.is-incorrect { color: var(--error); }
 
-/* given spec-card */
-.given-card .tag { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.06em; color: var(--primary); margin-bottom: 1.15rem; text-transform: uppercase; }
-.given-list { list-style: none; margin: 0 0 1.3rem; padding: 0; display: flex; flex-direction: column; }
+/* given spec-card — label left, value right, hairlines between rows only */
+.given-card .tag { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; }
+.given-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; }
 .given-row {
-  display: grid; grid-template-columns: 5.2rem minmax(0, 1fr); column-gap: 0.7rem; align-items: baseline;
-  font-size: 0.92rem; padding: 0.55rem 0; border-bottom: 1px dashed var(--outline-var);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 0.92rem; padding: 12px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--outline-var) 55%, transparent);
 }
-.given-row:first-child { padding-top: 0; }
-.given-row:last-child { border-bottom: none; padding-bottom: 0; }
-.given-row dt { margin: 0; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; color: var(--on-variant); text-transform: uppercase; }
-.given-row dd { margin: 0; color: var(--on-surface); font-weight: 500; }
+.given-row:last-child { border-bottom: 0; }
+.given-row dt { margin: 0; color: var(--on-variant); }
+.given-row dd { margin: 0; color: var(--on-surface); font-weight: 500; text-align: right; min-width: 0; }
+/* goal: a flat primary-container block, one tonal step up from the card */
 .given-card .goal-box {
-  background: color-mix(in srgb, var(--primary) 11%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
-  border-radius: 9px; padding: 0.85rem 1rem;
+  margin-top: 16px; padding: 16px; border-radius: 14px;
+  background: var(--primary-container); color: var(--on-primary-container);
 }
-.given-card .goal-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.05em; color: var(--on-variant); text-transform: uppercase; margin-bottom: 0.35rem; }
-.given-card .goal-value { font-weight: 600; color: var(--primary); font-size: 1.02rem; }
-[data-theme="dark"] .given-card .goal-value { color: var(--primary); }
+.given-card .goal-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
+.given-card .goal-value { font-family: var(--serif); font-weight: 600; font-size: 1.15rem; color: inherit; }
 
-/* solution flow: numbered timeline */
-.solution-flow > h3.flow-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1.6rem; }
-.steps { position: relative; display: flex; flex-direction: column; gap: 2rem; }
-.steps::before { content: ''; position: absolute; top: 1.2rem; bottom: 1.2rem; left: 1.2rem; width: 2px; background: var(--outline-var); z-index: 0; }
-.step { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 1rem; min-width: 0; }
+/* solution flow: the timeline IS the structure — no card around it */
+.solution-flow > h3.flow-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 4px; }
+.steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 8px; }
+.step { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; position: relative; padding-bottom: 20px; min-width: 0; }
+/* the connector belongs to a step, so hiding the step hides its line too */
+.step:not(:last-of-type)::before {
+  content: ''; position: absolute; left: 19px; top: 44px; bottom: 4px;
+  width: 2px; background: var(--outline-var);
+}
 .step-num {
-  position: relative; z-index: 1; width: 2.4rem; height: 2.4rem; border-radius: 50%;
-  background: var(--surface); border: 2px solid var(--primary); color: var(--primary);
-  display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-weight: 700; font-size: 1.05rem;
+  width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: var(--on-primary);
+  display: grid; place-items: center; font-weight: 500; font-size: 1rem;
 }
-[data-theme="dark"] .step-num { color: var(--primary); }
-.step h3 { font-size: 1.05rem; font-weight: 600; color: var(--on-surface); margin-bottom: 0.4rem; }
-.step .prose { max-width: 58ch; }
+.step h3 { font-size: 1.15rem; font-weight: 600; margin: 6px 0 8px; }
+.step .prose { max-width: var(--measure); }
+.step p, .step ul { color: var(--on-variant); }
+.step ul { padding-left: 20px; display: grid; gap: 8px; }
+.step strong { color: var(--on-surface); }
 
-/* answer card inside the flow (mock: no top margin) */
-.steps .answer-card { margin-top: 0.6rem; }
-.steps .answer-card .match { font-size: 0.9rem; color: var(--on-variant); }
+/* Display equations get their own surface (mock .math). KaTeX inserts its own
+   display wrapper inside the paragraph the content store already isolates, so
+   the paragraph is the surface — no HTML rewriting needed.
+   The surface is the ONLY scroll container for a wide equation (the inner
+   wrapper is unclipped), which lets the script in [id].astro mark the ones
+   that really overflow as focusable regions instead of leaving them
+   unreachable by keyboard. */
+.prose p:has(.katex-display) {
+  background: var(--container); border-radius: 14px; padding: 8px 16px;
+  margin: 12px 0; overflow-x: auto; overflow-y: hidden;
+}
+.prose p:has(.katex-display) .katex-display {
+  overflow: visible; max-width: none; padding: 0; margin: 0.6em 0;
+}
+/* a long expression is scaled down a step on phones before it has to scroll */
+.prose p:has(.katex-display) .katex { font-size: clamp(0.95rem, 4.4vw, 1.21em); }
+.prose p[tabindex]:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 
-/* produce zone */
-.zone-produce { background: var(--container); border-top: 1px solid var(--outline-var); border-bottom: 1px solid var(--outline-var); padding: 4rem 0 4.5rem; }
+/* Part 2 is not a band: the same page tone as Part 1, separated by rhythm only
+   (its padding comes from the shared section rule above). */
 .produce-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
 @media (min-width: 1024px) { .produce-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 2.5rem; align-items: start; } }
 .produce-grid > * { min-width: 0; }
@@ -451,6 +490,9 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 }
 *::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--on-variant) 62%, transparent); }
 *::-webkit-scrollbar-corner { background: transparent; }
+/* Chrome draws arrow buttons on custom scrollbars (a ‹ › pair under every wide
+   equation) unless they are explicitly removed */
+*::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 /* dark code blocks keep the same look but with their own ink */
 .code-block-wrap pre::-webkit-scrollbar-thumb { background: rgba(216,226,220,0.28); }
 .code-block-wrap pre::-webkit-scrollbar-thumb:hover { background: rgba(216,226,220,0.45); }
@@ -544,15 +586,9 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 
 /* problem-page mobile refinements (mock) */
 @media (max-width: 639px) {
-  .wrap-top { padding: 2.25rem var(--gutter) 3rem; }
+  .wrap-top { padding: 0 var(--gutter) 2.5rem; }
   .wrap-produce { padding: 0 var(--gutter); }
   .wrap-top .page-head p { font-size: 1rem; }
-  .part-head .sub { max-width: none; }
-  .step { grid-template-columns: 2rem minmax(0, 1fr); gap: 0.75rem; }
-  .step-num { width: 2rem; height: 2rem; font-size: 0.9rem; }
-  .steps { gap: 1.5rem; }
-  .steps::before { left: 1rem; top: 1rem; bottom: 1rem; }
-  .zone-produce { padding: 2.75rem 0 3rem; }
   .zone-upnext { padding: 2.5rem 0 3rem; }
   .wrap-upnext { padding: 0 var(--gutter); }
   .upnext-card { gap: 0.8rem; padding: 0.55rem; }
@@ -566,8 +602,9 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   .script-sheet { padding: 1rem 1.1rem; }
   .plan-list li { grid-template-columns: 3.4rem 1fr; font-size: 0.83rem; }
   .code-block-wrap pre { font-size: 0.7rem; padding: 0.9rem 1rem; }
+  /* our answer string carries the fraction as well as the decimal, so it needs
+     one step down on phones (the mock's answer is a bare decimal) */
   .answer-card .value { font-size: 1.5rem; }
-  .given-row { grid-template-columns: 4.6rem minmax(0, 1fr); }
   .code-card summary .code-hint { display: none; }
   .code-card summary h3 { font-size: 1rem; }
   .code-card { margin-top: 1.5rem; }

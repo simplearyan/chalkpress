@@ -27,7 +27,8 @@ const d = q.data;
 const secs = Math.round((d.duration_ms || 15000) / 1000);
 const title = `${d.title} · IITM Shorts`;
 const description = `${d.title} — ${d.topic.replace(/-/g, ' ')} (${d.difficulty}). Worked solution, narration script, and the animation code behind the ${secs}-second short.`;
-const kicker = `${d.topic.replace(/-/g, ' ').toUpperCase()} · ${d.difficulty.toUpperCase()}`;
+/* hero chip — the topic · difficulty label above the title */
+const chipText = `${d.topic.replace(/-/g, ' ')} · ${d.difficulty}`;
 /* the app bar carries the SERIES name (the question title is right below it in
    the hero); the in-page sections drive both the segmented tabs and the
    phone bottom nav, keyed on the same data-tab values. */
@@ -84,7 +85,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 
   <div class="wrap-top">
     <header class="page-head">
-      <div class="kicker">{kicker}</div>
+      <span class="chip">{chipText}</span>
       <h1>{d.title}</h1>
       <p>{d.source}</p>
     </header>
@@ -140,13 +141,16 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
                 </div>
               </div>
             ))}
-            <div class="answer-card">
-              <div>
-                <div class="label">FINAL ANSWER</div>
-                <div class="value">{d.answer}</div>
-              </div>
-              {correct && <div class="match">✓ Matches option {correct.id}</div>}
+          </div>
+          {/* the answer sits after the timeline, not inside it — the steps are
+              the derivation, this is the result (and the walkthrough reveals it
+              between the two) */}
+          <div class="answer-card" id="answer">
+            <div>
+              <div class="label">Answer</div>
+              <div class="value">{d.answer}</div>
             </div>
+            {correct && <span class="answer-badge">✓ Matches option {correct.id}</span>}
           </div>
         </div>
       </div>
@@ -253,6 +257,28 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 </Base>
 
 <script>
+  /* Wide display equations scroll inside their own surface. A scrollable region
+     that cannot be focused is unreachable by keyboard, so after KaTeX has
+     typeset (it runs on DOMContentLoaded) label only the ones that actually
+     overflow. */
+  (function markOverflowingMath() {
+    const surfaces = [...document.querySelectorAll<HTMLElement>('.prose p')]
+      .filter((el) => el.querySelector('.katex-display'));
+    if (!surfaces.length) return;
+    const mark = () => {
+      for (const el of surfaces) {
+        if (el.scrollWidth <= el.clientWidth + 1) continue;
+        el.tabIndex = 0;
+        el.setAttribute('role', 'region');
+        el.setAttribute('aria-label', 'Equation — scrolls horizontally');
+      }
+    };
+    // typeset happens on DOMContentLoaded and again as fonts land
+    requestAnimationFrame(mark);
+    window.addEventListener('load', mark);
+    setTimeout(mark, 600);
+  })();
+
   // try-it quiz feedback
   const fb = document.getElementById('try-feedback');
   document.querySelectorAll<HTMLButtonElement>('.try-option').forEach((btn) => {
