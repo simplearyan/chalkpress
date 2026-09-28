@@ -16,7 +16,15 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 |---|---|
 | **0 — tokens + type** | **done** — M3 roles + `--e1/--e2`, mock values, no font literal outside `:root` |
 | **1 — app shell** | **done** — `AppBar` + `BottomNav`, scroll-spy, hairline, hide-on-scroll |
-| 2–7 | not started |
+| **2a skeleton** | **done** — left-aligned hero + chip, `::after` section rules, Part-2 band deleted, 65ch measure |
+| **2b solve surface** | **done** — borderless tonal cards, given card, solid step circles, math surfaces, flat answer card + badge, the duplicate "Answer" step removed from the content |
+| **2c quiz · 2d walkthrough** | not started |
+| 3–7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** |
+
+`IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
+the mock's exact values, what the live build measures today, the required change, the
+content-model edits it implies, and the acceptance test. Read it before implementing a phase;
+it also lists the places where we deliberately do **better** than the mock.
 
 Three notes from doing 0 and 1, for whoever picks up phase 2:
 
