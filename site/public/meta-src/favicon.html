@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IITM favicon source</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,600;0,7..72,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Same stage paint as the pq-002 short; type sizes tuned for 64px raster.
+     Rasterize at 64x64 (or 512 and downscale) in test-renderer:
+       frame 1:1, bg #0e1512 → Save Frame PNG → shrink to 32/48/64. -->
+<style>html,body{margin:0;height:100%;overflow:hidden}
+.hss{position:relative;width:100%;height:100%;overflow:hidden;font-family:Inter,-apple-system,sans-serif;background:#0e1512;display:flex;align-items:center;justify-content:center}
+.tick{font-family:'JetBrains Mono',monospace;font-weight:600;color:#e7ba55;font-size:34px;letter-spacing:1px}
+.glyph{font-family:Literata,Georgia,serif;font-weight:700;font-size:300px;line-height:1;color:#6ed9b1}
+</style>
+</head>
+<body>
+<div class="hss" id="hss"><div class="glyph">✓</div></div>
+<script>
+/* Static end-state frame — no choreography needed for a favicon source;
+   test-renderer's Save Frame captures whatever onFrame(t) leaves on stage. */
+function onFrame(t) { /* static by design */ }
+</script>
+</body>
+</html>

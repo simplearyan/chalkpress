@@ -1,0 +1,13 @@
+{
+  "name": "iitm-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "validate": "node tools/validate.mjs",
+    "site:dev": "npm run dev --prefix site",
+    "site:build": "npm run build --prefix site",
+    "site:preview": "npm run preview --prefix site",
+    "demo": "npx vite --port 5180 --strictPort"
+  }
+}

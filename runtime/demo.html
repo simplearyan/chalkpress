@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hic-scenes runtime demo · pq-001 storyboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="hic-scenes.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+<style>
+  :root {
+    --bg: #f5f4ee; --surface: #fdfcf9; --surface-alt: #eeece3;
+    --text: #1b1f1c; --text-dim: #5c665f; --border: #e1ded1; --rule: #d7d3c3;
+    --primary: #12523f; --accent: #a8790a;
+    --shadow: 0 1px 2px rgba(20,20,10,0.05), 0 10px 30px rgba(20,20,10,0.06);
+  }
+  [data-theme="dark"] {
+    --bg: #0f1512; --surface: #161d19; --surface-alt: #1b2420;
+    --text: #edf1ec; --text-dim: #93a29a; --border: #263029; --rule: #2c362f;
+    --primary: #4dc397; --accent: #e7ba55;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 30px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .kicker { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 0.6rem; }
+  h1 { font-family: 'Literata', serif; font-size: 1.8rem; margin: 0 0 0.4rem; }
+  .lede { color: var(--text-dim); margin: 0 0 2rem; max-width: 46rem; }
+  .lede code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: var(--surface-alt); padding: 0.1em 0.4em; border-radius: 5px; }
+
+  .layout { display: grid; grid-template-columns: 1fr; gap: 1.6rem; }
+  @media (min-width: 760px) { .layout { grid-template-columns: 300px 1fr; align-items: start; } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+
+  .stage-card { padding: 1rem; }
+  .stage-row { display: flex; justify-content: center; padding: 0.6rem 0; }
+  #stage {
+    width: 100%; max-width: 270px; aspect-ratio: 9 / 16;
+    position: relative;
+  }
+  #device.wide #stage { max-width: 480px; aspect-ratio: 16 / 9; }
+
+  .bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0; flex-wrap: wrap; }
+  .bar .spacer { flex: 1; }
+  .bar button {
+    font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; border: none; border-radius: 6px;
+    padding: 0.4rem 0.85rem; cursor: pointer; transition: filter 0.15s ease;
+    background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);
+  }
+  .bar button:hover { filter: brightness(1.06); border-color: var(--accent); }
+  #btn-play { background: var(--accent); border-color: var(--accent); }
+  [data-theme="dark"] #btn-play { color: #241a02; }
+
+  .track { height: 3px; background: var(--surface-alt); border-radius: 3px; margin: 0.7rem 0.4rem 0.3rem; position: relative; }
+  #seekbar { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+  #progress { height: 3px; background: var(--accent); border-radius: 3px; width: 0; }
+  #clock { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim); text-align: right; padding: 0 0.55rem 0.55rem; }
+
+  .info { padding: 1.1rem 1.25rem; font-size: 0.9rem; color: var(--text-dim); }
+  .info h2 { font-family: 'Literata', serif; font-size: 1.05rem; color: var(--text); margin: 0 0 0.5rem; }
+  .info dl { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.9rem; margin: 0.8rem 0 0; }
+  .info dt { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; padding-top: 0.15rem; }
+  .info dd { margin: 0; color: var(--text); }
+  .scene-list { margin: 0.8rem 0 0; padding: 0; list-style: none; }
+  .scene-list li { padding: 0.45rem 0; border-bottom: 1px dashed var(--rule); display: flex; gap: 0.7rem; align-items: baseline; }
+  .scene-list li:last-child { border-bottom: none; }
+  .scene-list time { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent); white-space: nowrap; }
+  .scene-list button { background: none; border: none; color: var(--text); font: inherit; cursor: pointer; padding: 0; text-align: left; }
+  .scene-list button:hover { color: var(--primary); }
+
+  .framegrid { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
+  .framegrid canvas { width: 72px; aspect-ratio: 9/16; border-radius: 8px; border: 1px solid var(--border); background: #0e1512; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">SHARED SCENE RUNTIME · PROOF</div>
+  <h1>hic-scenes demo</h1>
+  <p class="lede">
+    The stage below is driven entirely by <code>storyboard.json</code> through
+    <code>runtime/hic-scenes.js</code> — no per-video timeline code. Same engine will render
+    the hic-modal WebM export. Click the stage to play/pause; scrub below it.
+  </p>
+
+  <div class="layout">
+    <section class="card info">
+      <h2 id="sb-title">…</h2>
+      <dl>
+        <dt>id</dt><dd id="sb-id">…</dd>
+        <dt>aspect</dt><dd id="sb-aspect">…</dd>
+        <dt>fps</dt><dd id="sb-fps">…</dd>
+        <dt>duration</dt><dd id="sb-dur">…</dd>
+        <dt>scenes</dt><dd id="sb-scenes">…</dd>
+      </dl>
+      <ul class="scene-list" id="scene-list"></ul>
+    </section>
+
+    <section class="card stage-card">
+      <div class="bar">
+        <button id="btn-play">Play</button>
+        <button id="btn-reset">Reset</button>
+        <button id="btn-aspect">16:9</button>
+        <span class="spacer"></span>
+        <button id="btn-frames">Determinism check</button>
+      </div>
+      <div class="stage-row" id="device">
+        <div id="stage"></div>
+      </div>
+      <div class="track">
+        <div id="progress"></div>
+        <input id="seekbar" type="range" min="0" max="15000" value="0" step="50" aria-label="Seek">
+      </div>
+      <div id="clock">0 / 15000 ms</div>
+      <div class="framegrid" id="framegrid"></div>
+    </section>
+  </div>
+</div>
+
+<script type="module" src="hic-scenes.js"></script>
+<script>
+(async function () {
+  // load the migrated storyboard (the real content artifact, not a copy)
+  const sb = await (await fetch('../content/subjects/probability/pq-001/storyboard.json')).json();
+
+  document.getElementById('sb-title').textContent = sb.title;
+  document.getElementById('sb-id').textContent = sb.id;
+  document.getElementById('sb-aspect').textContent = sb.aspect;
+  document.getElementById('sb-fps').textContent = sb.fps;
+  document.getElementById('sb-dur').textContent = (sb.total_duration_ms / 1000).toFixed(1) + 's';
+  document.getElementById('sb-scenes').textContent = sb.scenes.length;
+
+  const list = document.getElementById('scene-list');
+  sb.scenes.forEach((s) => {
+    const li = document.createElement('li');
+    const t = document.createElement('time');
+    t.textContent = (s.start_ms / 1000).toFixed(1) + '–' + (s.end_ms / 1000).toFixed(1) + 's';
+    const b = document.createElement('button');
+    b.textContent = s.id;
+    b.addEventListener('click', () => player.seek(s.start_ms + 10));
+    li.appendChild(t); li.appendChild(b); list.appendChild(li);
+  });
+
+  const stage = document.getElementById('stage');
+  const btnPlay = document.getElementById('btn-play');
+  const progress = document.getElementById('progress');
+  const clock = document.getElementById('clock');
+  const seekbar = document.getElementById('seekbar');
+  seekbar.max = String(sb.total_duration_ms);
+
+  const player = createScenePlayer(stage, sb, {
+    onEnd: () => { btnPlay.textContent = 'Replay'; },
+    onPlayState: (p) => { btnPlay.textContent = p ? 'Pause' : 'Play'; },
+  });
+  window.__player = player; // debugging / console probing
+
+  btnPlay.addEventListener('click', () => player.play());
+  document.getElementById('btn-reset').addEventListener('click', () => { player.reset(); btnPlay.textContent = 'Play'; });
+  document.getElementById('btn-aspect').addEventListener('click', function () {
+    const wide = document.getElementById('device').classList.toggle('wide');
+    this.textContent = wide ? '9:16' : '16:9';
+  });
+  seekbar.addEventListener('input', () => player.seek(Number(seekbar.value)));
+
+  // Determinism proof for export parity: render(t) must be a pure function
+  // of t, so visiting times in different orders must produce identical DOM
+  // state. (This is exactly what makes hic-modal's wall-clock WebM export
+  // frame-identical between preview and capture.)
+  function stateHash() {
+    const parts = [];
+    stage.querySelectorAll('.hs-scene, .hs-el, .hs-cardwrap').forEach((n) => {
+      parts.push(n.style.opacity + '|' + (n.style.transform || ''));
+    });
+    return parts.join('::');
+  }
+  document.getElementById('btn-frames').addEventListener('click', () => {
+    const wasPlaying = player.isPlaying();
+    if (wasPlaying) player.pause();
+    const times = [2000, 7000, 13000];
+    const fwd = times.map((t) => { player.render(t); return stateHash(); });
+    const rev = times.slice().reverse().map((t) => { player.render(t); return stateHash(); });
+    const grid = document.getElementById('framegrid');
+    grid.innerHTML = '';
+    const verdict = document.createElement('div');
+    verdict.style.cssText = 'font-family:JetBrains Mono,monospace;font-size:0.75rem;padding:0.3rem 0;';
+    verdict.textContent = fwd.every((h, i) => h === rev[times.length - 1 - i])
+      ? '✓ deterministic — render(t) identical in both visit orders'
+      : '✗ NON-DETERMINISTIC — visit order changed output';
+    verdict.style.color = verdict.textContent.startsWith('✓') ? 'var(--primary)' : 'var(--danger, #a3223c)';
+    grid.appendChild(verdict);
+    player.render(wasPlaying ? player.getTime() : 0);
+  });
+
+  // progress + clock via rAF (player also emits onFrame — kept simple here)
+  (function tick() {
+    const t = player.getTime();
+    progress.style.width = (t / player.getDuration() * 100) + '%';
+    clock.textContent = Math.round(t) + ' / ' + player.getDuration() + ' ms';
+    seekbar.value = String(Math.round(t));
+    requestAnimationFrame(tick);
+  })();
+})();
+</script>
+</body>
+</html>

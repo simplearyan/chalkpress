@@ -1,0 +1,110 @@
+/* hic-scenes.css — IITM shared scene runtime styles (v1)
+   Pairs with hic-scenes.js. All element motion is JS-driven (inline styles);
+   CSS only sets the static skeleton and the responsive type scale.
+   Container queries scale type with the STAGE box (the original mock's trick),
+   not the viewport, so 9:16 and 16:9 stages both render correctly anywhere. */
+
+.hs-stage {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', -apple-system, sans-serif;
+  container-type: inline-size;
+  container-name: hsplayer;
+  color: #fff;
+  border-radius: 14px;
+}
+
+.hs-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 0 8%;
+  box-sizing: border-box;
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* ── elements ─────────────────────────────────────────────────────────── */
+.hs-el { opacity: 0; will-change: opacity, transform; }
+
+.hs-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  text-align: center;
+}
+
+.hs-latex { font-size: 1em; text-align: center; }
+.hs-latex .katex-display { margin: 0.35em 0; }
+
+.hs-answer {
+  font-family: 'Literata', Georgia, serif;
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+}
+@container hsplayer (min-width: 420px) { .hs-answer { font-size: 48px; } }
+
+.hs-cards { display: flex; gap: 12px; }
+@container hsplayer (min-width: 420px) { .hs-cards { gap: 20px; } }
+
+.hs-cardwrap { opacity: 0; will-change: opacity, transform; }
+
+.hs-card {
+  width: 52px; height: 72px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: bold;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+@container hsplayer (min-width: 420px) { .hs-card { width: 90px; height: 130px; font-size: 36px; } }
+
+.hs-shape {
+  position: absolute;
+  inset: 0;             /* fill the wrap; overlay geometry is set inline by JS */
+  pointer-events: none;
+  border: 3px solid currentColor;
+  border-radius: 8px;
+  /* no opacity here — the wrap's opacity is JS-driven for the whole element */
+}
+@container hsplayer (min-width: 420px) { .hs-shape { border-width: 4px; } }
+
+.hs-shape-underline {
+  border: none;
+  border-radius: 2px;
+  height: 4px;
+  top: auto;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  width: auto;
+}
+
+/* standalone (non-overlay) shape wraps need a drawable box */
+.hs-el.hs-type-shape { min-width: 80px; min-height: 48px; align-self: center; }
+
+.hs-overlay {
+  /* appended into the host element's wrap; keep the host's coordinate space */
+  position: absolute;
+  margin: 0;
+}
+
+/* host wraps need a coordinate space for overlay shapes */
+.hs-el { position: relative; }
+
+/* ── responsive type scale (matches SIZE table in hic-scenes.js) ──────── */
+.hs-title { font-size: 16px; letter-spacing: 2px; margin-bottom: 10px; }
+.hs-sub   { font-size: 12px; font-weight: 500; }
+.hs-body  { font-size: 17px; }
+
+@container hsplayer (min-width: 420px) {
+  .hs-title { font-size: 30px; letter-spacing: 3px; margin-bottom: 18px; }
+  .hs-sub   { font-size: 20px; }
+  .hs-body  { font-size: 30px; }
+}

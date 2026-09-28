@@ -1,0 +1,59 @@
+{
+  "id": "pq-002",
+  "title": "Check the Set",
+  "aspect": "16:9",
+  "fps": 30,
+  "total_duration_ms": 17500,
+  "background": "#0e1512",
+  "scenes": [
+    {
+      "id": "intro",
+      "start_ms": 0,
+      "end_ms": 4500,
+      "fade_out_ms": 500,
+      "elements": [
+        { "id": "title", "type": "text", "size": "title", "text": "CHECK THE SET", "color": "#e7ba55",
+          "in": { "type": "slide", "start_ms": 200, "dur_ms": 600, "from_y": 20 } },
+        { "id": "points", "type": "cards",
+          "items": [
+            { "label": "A(1,2)" },
+            { "label": "B(2,3)" }
+          ],
+          "in": { "type": "slide", "start_ms": 600, "dur_ms": 600, "from_y": 50, "stagger_ms": 250 } },
+        { "id": "claims", "type": "text", "size": "sub", "text": "2A  ·  3B  ·  A+B  ·  A−B", "color": "#93a29a",
+          "in": { "type": "fade", "start_ms": 1700, "dur_ms": 600 } }
+      ]
+    },
+    {
+      "id": "compute",
+      "start_ms": 4500,
+      "end_ms": 12000,
+      "fade_out_ms": 500,
+      "elements": [
+        { "id": "calc-2a", "type": "latex", "text": "\\mathbf{2A} \\;=\\; 2(1,2) = (2,4)", "color": "#ffffff",
+          "at_ms": 300, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } },
+        { "id": "calc-3b", "type": "latex", "text": "\\mathbf{3B} \\;=\\; 3(2,3) = (6,9)", "color": "#ffffff",
+          "at_ms": 1200, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } },
+        { "id": "calc-add", "type": "latex", "text": "\\mathbf{A+B} \\;=\\; (1{+}2,\\,2{+}3) = (3,5)", "color": "#ffffff",
+          "at_ms": 2100, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } },
+        { "id": "calc-sub", "type": "latex", "text": "\\mathbf{A-B} \\;=\\; (1{-}2,\\,2{-}3) = (-1,-1)", "color": "#ffffff",
+          "at_ms": 3000, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } }
+      ]
+    },
+    {
+      "id": "verdict",
+      "start_ms": 12000,
+      "end_ms": 17500,
+      "elements": [
+        { "id": "results", "type": "latex", "text": "(2,4) \\quad (6,9) \\quad (3,5) \\quad (-1,-1)", "color": "#ffffff",
+          "at_ms": 300, "in": { "type": "slide", "start_ms": 0, "dur_ms": 800, "from_y": -20 } },
+        { "id": "checks", "type": "latex", "text": "\\checkmark\\;\\;\\checkmark\\;\\;\\checkmark\\;\\;\\checkmark", "color": "#6ed9b1",
+          "at_ms": 1300, "in": { "type": "slide", "start_ms": 0, "dur_ms": 800, "from_y": -10 } },
+        { "id": "final", "type": "answer", "text": "4 / 4 CORRECT", "color": "#6ed9b1",
+          "at_ms": 2300, "in": { "type": "pop", "start_ms": 0, "dur_ms": 800 } },
+        { "id": "hi", "type": "shape", "shape": "highlight", "of": "final",
+          "at_ms": 3300, "in": { "type": "pop", "start_ms": 0, "dur_ms": 500, "overshoot": 1.7 } }
+      ]
+    }
+  ]
+}

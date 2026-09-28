@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts Library · Math Explainers</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;0,7..72,700;1,7..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f5f4ee; --surface: #fdfcf9; --surface-alt: #eeece3;
+    --text: #1b1f1c; --text-dim: #5c665f; --border: #e1ded1; --rule: #d7d3c3;
+    --primary: #12523f; --primary-strong: #0c3a2c;
+    --accent: #a8790a; --accent-strong: #8a6508; --danger: #a3223c;
+    --shadow: 0 1px 2px rgba(20,20,10,0.05), 0 10px 30px rgba(20,20,10,0.06);
+  }
+  [data-theme="dark"] {
+    --bg: #0f1512; --surface: #161d19; --surface-alt: #1b2420;
+    --text: #edf1ec; --text-dim: #93a29a; --border: #263029; --rule: #2c362f;
+    --primary: #4dc397; --primary-strong: #6ed9b1;
+    --accent: #e7ba55; --accent-strong: #f2cd77; --danger: #ef6b7d;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 30px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6;
+    transition: background 0.25s ease, color 0.25s ease; -webkit-font-smoothing: antialiased;
+  }
+  h1, h2 { font-family: 'Literata', Georgia, serif; color: var(--text); margin: 0; }
+
+  #theme-toggle {
+    position: fixed; top: 1.25rem; right: 1.25rem; z-index: 40;
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow);
+  }
+  #theme-toggle svg { width: 19px; height: 19px; }
+  #theme-toggle .icon-moon { display: none; }
+  [data-theme="dark"] #theme-toggle .icon-sun { display: none; }
+  [data-theme="dark"] #theme-toggle .icon-moon { display: block; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 3.5rem 1.75rem 5rem; }
+
+  header.page-head { margin-bottom: 3rem; max-width: 42rem; }
+  .kicker { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 0.9rem; }
+  header.page-head h1 { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 600; line-height: 1.15; margin-bottom: 0.9rem; }
+  header.page-head p { font-size: 1.08rem; color: var(--text-dim); margin: 0; }
+
+  .shelf-title { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 1.2rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--rule); }
+
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.5rem; }
+
+  .short-card {
+    display: block; text-decoration: none; color: inherit; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+    overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .short-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+  [data-theme="dark"] .short-card:hover { border-color: var(--primary); }
+
+  .short-thumb {
+    position: relative; aspect-ratio: 9 / 16; background: #0c110e; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .short-thumb .badge {
+    position: absolute; top: 0.7rem; left: 0.7rem; z-index: 2;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.05em;
+    padding: 0.25rem 0.55rem; border-radius: 999px; background: rgba(253,252,249,0.14);
+    color: #e7ded0; backdrop-filter: blur(2px);
+  }
+  .short-thumb .duration {
+    position: absolute; bottom: 0.6rem; right: 0.6rem; z-index: 2;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 600;
+    padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(0,0,0,0.65); color: #fff;
+  }
+  .short-thumb .play-badge {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3;
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(253,252,249,0.16);
+    display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s ease;
+  }
+  .short-card:hover .play-badge { opacity: 1; }
+  .play-badge svg { width: 16px; height: 16px; color: #fff; margin-left: 2px; }
+
+  .short-poster { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem; text-align: center; }
+  .short-poster .p-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em; color: #93a29a; }
+  .short-poster .p-value { font-family: 'Literata', serif; font-weight: 700; font-size: 1.5rem; }
+  .short-poster .p-check { display: flex; gap: 0.3rem; font-size: 0.85rem; color: #6ed9b1; }
+
+  .short-scrim {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 1.6rem 0.8rem 0.7rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0));
+  }
+  .short-scrim .s-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.88rem; color: #fff; margin-bottom: 0.2rem; }
+  .short-scrim .s-sub { font-size: 0.74rem; color: #c9d2cc; }
+
+  .short-meta { padding: 0.85rem 0.95rem 1rem; }
+  .short-meta .m-topic { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em; color: var(--primary); margin-bottom: 0.3rem; }
+  [data-theme="dark"] .short-meta .m-topic { color: var(--primary); }
+  .short-meta .m-cta { font-size: 0.82rem; color: var(--text-dim); }
+
+  .coming-soon {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+    aspect-ratio: 9/16; border: 1px dashed var(--border); border-radius: 16px; color: var(--text-dim);
+    background: var(--surface-alt);
+  }
+  .coming-soon svg { width: 22px; height: 22px; opacity: 0.6; }
+  .coming-soon span { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.03em; }
+
+  @media (max-width: 639px) {
+    .wrap { padding: 2.25rem 1.1rem 3.5rem; }
+    #theme-toggle { top: 0.8rem; right: 0.8rem; width: 38px; height: 38px; }
+    #theme-toggle svg { width: 17px; height: 17px; }
+    header.page-head { margin-bottom: 2.25rem; }
+    header.page-head p { font-size: 0.98rem; }
+    .shelf { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+    .short-scrim .s-title { font-size: 0.8rem; }
+    .short-scrim .s-sub { font-size: 0.68rem; }
+  }
+</style>
+</head>
+<body>
+
+<button id="theme-toggle" aria-label="Toggle color theme" title="Toggle color theme">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.2M12 19.3v2.2M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.4 19.6 6 18M18 6l1.6-1.6"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5a8.5 8.5 0 1 1-9-11.9 7 7 0 0 0 9 11.9z"/></svg>
+</button>
+
+<div class="wrap">
+  <header class="page-head">
+    <div class="kicker">SHORT-FORM MATH LAB</div>
+    <h1>Shorts Library</h1>
+    <p>Every problem worked out in full, then repackaged as a 15–20 second explainer — script, animation, and copyable code included. Tap a short to open its page.</p>
+  </header>
+
+  <div class="shelf-title">All shorts</div>
+  <div class="shelf">
+
+    <a class="short-card" href="problem-1-two-queens-one-king.html">
+      <div class="short-thumb">
+        <span class="badge">PROBABILITY</span>
+        <span class="duration">0:15</span>
+        <div class="short-poster">
+          <div class="p-eyebrow">P(2 QUEENS, 1 KING)</div>
+          <div class="p-value" style="color:#6ed9b1;">&asymp; 0.0039</div>
+          <div class="p-eyebrow" style="color:#e7ba55;">1,056 / 270,725</div>
+        </div>
+        <div class="play-badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="short-scrim">
+          <div class="s-title">Two Queens, One King</div>
+          <div class="s-sub">Joint probability of a 4-card draw</div>
+        </div>
+      </div>
+      <div class="short-meta">
+        <div class="m-topic">JOINT PROBABILITY</div>
+        <div class="m-cta">Solution + script + animation code →</div>
+      </div>
+    </a>
+
+    <a class="short-card" href="problem-2-vector-check.html">
+      <div class="short-thumb">
+        <span class="badge">VECTORS</span>
+        <span class="duration">0:17</span>
+        <div class="short-poster">
+          <div class="p-eyebrow">A(1,2) &nbsp;B(2,3)</div>
+          <div class="p-value" style="color:#e7ba55;">4 / 4</div>
+          <div class="p-check">&#10003;&nbsp;&#10003;&nbsp;&#10003;&nbsp;&#10003;</div>
+        </div>
+        <div class="play-badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="short-scrim">
+          <div class="s-title">Check the Set</div>
+          <div class="s-sub">Scalar multiples, sums &amp; differences</div>
+        </div>
+      </div>
+      <div class="short-meta">
+        <div class="m-topic">VECTOR ALGEBRA</div>
+        <div class="m-cta">Solution + script + animation code →</div>
+      </div>
+    </a>
+
+    <div class="coming-soon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>More soon</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    const root = document.documentElement;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+    });
+  })();
+</script>
+</body>
+</html>

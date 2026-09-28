@@ -1,0 +1,50 @@
+---
+// Shorts Library — generated from the canonical content store.
+// Only questions far enough along the pipeline get a card.
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import ShortCard from '../components/ShortCard.astro';
+import { posterFor } from '../lib/posters.js';
+
+const all = await getCollection('subjects');
+const entries = all
+  .filter((e) => ['animated', 'rendered', 'published'].includes(e.data.status))
+  .sort((a, b) => a.data.id.localeCompare(b.data.id));
+---
+<Base
+  title="Shorts Library · IITM"
+  description="Short-form math explainers — every problem worked in full, then repackaged as a short with script, animation, and copyable code."
+  ogImage="/og-default.png"
+>
+  <ThemeToggle />
+  <div class="wrap">
+    <header class="page-head">
+      <div class="kicker">SHORT-FORM MATH LAB</div>
+      <h1>Shorts Library</h1>
+      <p>Every problem worked out in full, then repackaged as a short explainer — script, animation, and copyable code included. Tap a short to open its page.</p>
+    </header>
+
+    <div class="shelf-title">All shorts</div>
+    <div class="shelf">
+      {entries.map((e) => {
+        const p = posterFor(e.data);
+        return (
+          <ShortCard
+            href={`/${e.data.subject}/${e.data.id}/`}
+            badge={e.data.topic.replace(/-/g, ' ').toUpperCase()}
+            title={e.data.title}
+            sub={e.data.topic.replace(/-/g, ' ')}
+            eyebrow={p.eyebrow || e.data.title.toUpperCase().slice(0, 24)}
+            value={p.value}
+            valueColor={p.color}
+            duration={String(e.data.duration_ms)}
+          />
+        );
+      })}
+      <div class="short-card" style="display:flex;align-items:center;justify-content:center;border-style:dashed;box-shadow:none;background:var(--surface-alt);aspect-ratio:9/16;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.72rem;">
+        more soon
+      </div>
+    </div>
+  </div>
+</Base>

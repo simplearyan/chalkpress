@@ -1,0 +1,104 @@
+---
+// Subject portal — the calculus-portal UX, generated from content.
+// List/exam view modes, search, category chips; vanilla JS island.
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import Base from '../../layouts/Base.astro';
+import ThemeToggle from '../../components/ThemeToggle.astro';
+
+export async function getStaticPaths() {
+  const all = await getCollection('subjects');
+  const subjects = [...new Set(all.map((e) => e.data.subject))];
+  return subjects.map((subject) => ({
+    params: { subject },
+    props: { questions: all.filter((e) => e.data.subject === subject) },
+  }));
+}
+
+const { questions } = Astro.props;
+const subject = questions[0].data.subject;
+const title = subject.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+// derive categories from topics present in this subject's questions
+const categories = [...new Set(questions.map((e) => e.data.topic))];
+---
+
+<Base
+  title={`${title} — Solutions · IITM`}
+  description={`${title} solutions portal — ${questions.length} question${questions.length === 1 ? '' : 's'} worked in full with search, topic filters, and animated explainers.`}
+  ogImage="/og-default.png"
+>
+  <ThemeToggle />
+  <div class="wrap">
+    <header class="page-head">
+      <div class="kicker">SOLUTIONS PORTAL</div>
+      <h1>{title}</h1>
+      <p>{questions.length} question{questions.length === 1 ? '' : 's'}, worked in full. Search, filter, and flip through exam-style.</p>
+    </header>
+
+    <div class="portal-controls" style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+      <input id="qsearch" type="text" placeholder="Search a question"
+        style="flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:0.5rem 1rem;font-family:'Inter',sans-serif;font-size:0.9rem;color:var(--text);">
+      <div id="chips" style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+        <button class="chip-btn active" data-cat="all">All</button>
+        {categories.map((c) => <button class="chip-btn" data-cat={c}>{c.replace(/-/g, ' ')}</button>)}
+      </div>
+    </div>
+
+    <div id="qlist" style="display:flex;flex-direction:column;gap:1.2rem;">
+      {questions.map((e, qi) => (
+        <article class="card q-card" data-topic={e.data.topic} data-search={`${e.data.title} ${e.data.topic} ${e.data.answer}`.toLowerCase()} id={`q-${e.data.id}`}>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:1rem;">
+            <h2 style="font-size:1.15rem;">{qi + 1}. {e.data.title}</h2>
+            <span class="mono" style="font-size:0.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;">{e.data.topic.replace(/-/g, ' ')}</span>
+          </div>
+          <div class="prose" style="margin-top:0.7rem;" set:html={marked.parse(e.body || '')} />
+          <div class="answer-card">
+            <div>
+              <div class="label">FINAL ANSWER</div>
+              <div class="value" style="font-size:1.4rem;">{e.data.answer}</div>
+            </div>
+            <a class="mono" style="font-size:0.8rem;color:var(--primary);text-decoration:none;" href={`/${e.data.subject}/${e.data.id}/`}>open full page →</a>
+          </div>
+        </article>
+      ))}
+    </div>
+    <p id="empty" style="display:none;text-align:center;color:var(--text-dim);padding:3rem 0;">No questions match your search.</p>
+  </div>
+
+  <style>
+    .chip-btn {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.03em;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
+      border-radius: 999px; padding: 0.45rem 0.9rem; cursor: pointer;
+    }
+    .chip-btn.active { background: var(--accent); border-color: var(--accent); color: #fffdfb; }
+    [data-theme="dark"] .chip-btn.active { color: #241a02; }
+  </style>
+
+  <script>
+    // search + filter (portal island — vanilla, same behavior as the mock)
+    const input = document.getElementById('qsearch') as HTMLInputElement;
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.q-card'));
+    const chips = Array.from(document.querySelectorAll<HTMLElement>('.chip-btn'));
+    let currentCat = 'all';
+
+    function apply() {
+      const q = input.value.toLowerCase().trim();
+      let visible = 0;
+      for (const card of cards) {
+        const ok = (currentCat === 'all' || card.dataset.topic === currentCat)
+          && (!q || (card.dataset.search || '').includes(q));
+        card.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+      }
+      (document.getElementById('empty') as HTMLElement).style.display = visible ? 'none' : '';
+    }
+    input.addEventListener('input', apply);   // covers typing, paste, IME
+    chips.forEach((c) => c.addEventListener('click', () => {
+      currentCat = c.dataset.cat || 'all';
+      chips.forEach((x) => x.classList.toggle('active', x === c));
+      apply();
+    }));
+  </script>
+</Base>

@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multivariable Calculus — Solutions</title>
+<meta name="theme-color" content="#FAF9F5">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;0,18..144,600;1,18..144,400&display=swap" rel="stylesheet">
+
+<script>
+  // Suppress the Tailwind Play CDN's "do not use in production" console warning.
+  (function () {
+    const originalWarn = console.warn;
+    console.warn = function (...args) {
+      if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+      originalWarn.apply(console, args);
+    };
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    options: {
+      ignoreHtmlClass: 'tex2jax_ignore',
+      processHtmlClass: 'tex2jax_process'
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Roboto', 'sans-serif'],
+          mono: ['"Roboto Mono"', 'monospace'],
+          serif: ['Literata', 'serif'],
+        },
+        colors: {
+          bg: 'var(--bg)',
+          surface: 'var(--surface)',
+          surface2: 'var(--surface-2)',
+          hair: 'var(--hairline)',
+          ink: 'var(--ink)',
+          ink2: 'var(--ink-2)',
+          accent: 'var(--accent)',
+          accentSoft: 'var(--accent-soft)',
+          okay: 'var(--okay)',
+          okaySoft: 'var(--okay-soft)',
+          catA: 'var(--cat-a)',
+          catASoft: 'var(--cat-a-soft)',
+          catB: 'var(--cat-b)',
+          catBSoft: 'var(--cat-b-soft)',
+          catC: 'var(--cat-c)',
+          catCSoft: 'var(--cat-c-soft)',
+        },
+        borderRadius: {
+          xl2: '1.25rem',
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root {
+    --bg: #FAF9F5;
+    --surface: #FFFFFF;
+    --surface-2: #F0EEE6;
+    --hairline: #E5E1D8;
+    --ink: #24231F;
+    --ink-2: #6B6A63;
+    --accent: #C15F3C;
+    --accent-soft: #F4E3D8;
+    --okay: #4C7A5D;
+    --okay-soft: #E4EEE6;
+    --cat-a: #4A6FA5;
+    --cat-a-soft: #E3EAF3;
+    --cat-b: #7A5A9C;
+    --cat-b-soft: #ECE4F2;
+    --cat-c: #B08423;
+    --cat-c-soft: #F5EAD2;
+    --shadow-1: 0 1px 2px rgba(36,35,31,0.06), 0 1px 8px rgba(36,35,31,0.04);
+    --shadow-2: 0 2px 6px rgba(36,35,31,0.08), 0 8px 24px rgba(36,35,31,0.08);
+  }
+
+  html.dark {
+    --bg: #1E1D1B;
+    --surface: #262523;
+    --surface-2: #2E2D2A;
+    --hairline: #3D3B36;
+    --ink: #EDEBE3;
+    --ink-2: #A6A399;
+    --accent: #E08761;
+    --accent-soft: rgba(224,135,97,0.14);
+    --okay: #86B79A;
+    --okay-soft: rgba(134,183,154,0.14);
+    --cat-a: #8FB2E0;
+    --cat-a-soft: rgba(143,178,224,0.14);
+    --cat-b: #BCA0DA;
+    --cat-b-soft: rgba(188,160,218,0.14);
+    --cat-c: #D9B65B;
+    --cat-c-soft: rgba(217,182,91,0.14);
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.3), 0 1px 8px rgba(0,0,0,0.2);
+    --shadow-2: 0 4px 10px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.3);
+  }
+
+  * { -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  :root { box-sizing: border-box; }
+  html { scroll-padding-top: 64px; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 8px; }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .mjx-chtml { color: inherit !important; outline: none; }
+
+  .prose-serif {
+    font-family: 'Literata', serif;
+    letter-spacing: 0.001em;
+  }
+  .prose-serif .mjx-chtml { font-size: 116%; }
+
+  /* Fluid typography: scales smoothly between phone and desktop widths
+     instead of jumping at fixed breakpoints. */
+  .text-fluid-title { font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem); }
+  .text-fluid-body  { font-size: clamp(0.95rem, 0.87rem + 0.4vw, 1.0625rem); }
+  .text-fluid-step  { font-size: clamp(0.9rem, 0.83rem + 0.35vw, 1.03rem); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-1);
+  }
+
+  .chip {
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    color: var(--ink-2);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--ink); }
+  .chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #FFFDFB;
+  }
+
+  .icon-btn {
+    color: var(--ink-2);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+  .view-toggle-btn {
+    color: var(--ink-2);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .view-toggle-btn.active {
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: var(--shadow-1);
+  }
+
+  #sidebarNav a.active-nav {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .filter-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--hairline);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .filter-menu-item:last-child { border-bottom: none; }
+  .filter-menu-item:hover { background: var(--surface-2); color: var(--ink); }
+  .filter-menu-item.active { color: var(--accent); font-weight: 600; }
+
+  .steps-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+  .steps-panel.open { grid-template-rows: 1fr; }
+  .steps-panel > div { overflow: hidden; }
+
+  .chevron { transition: transform 0.25s ease; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .fade-in { animation: fadeIn 0.35s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  input::placeholder { color: var(--ink-2); opacity: 0.7; }
+
+  dialog#calcDialog {
+    background: transparent;
+    border: none;
+    padding: 0;
+    max-width: none;
+    max-height: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+  dialog#calcDialog::backdrop {
+    background: rgba(20,19,17,0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .toast {
+    animation: toastIn 0.25s ease both;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+
+<body class="font-sans antialiased min-h-screen flex flex-col">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] bg-accent text-white px-3 py-2 rounded-lg text-sm">Skip to solutions</a>
+
+<!-- Header (top bar) -->
+<header class="sticky top-0 z-40 border-b border-hair" style="background: var(--bg); padding-top: env(safe-area-inset-top, 0px);">
+  <div class="max-w-6xl mx-auto px-3 sm:px-6 h-12 flex items-center gap-2 sm:gap-3">
+    <div class="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+      <span class="material-symbols-outlined text-accent shrink-0" style="font-size:20px;">functions</span>
+      <h1 class="font-medium text-sm leading-none truncate hidden sm:block">Multivariable Calculus</h1>
+    </div>
+
+    <!-- Desktop-only middle area (≥md): search + filters, or exam nav. Mobile uses the bottom bar instead. -->
+    <div id="desktopListControls" class="hidden md:flex flex-1 items-center gap-3 min-w-0">
+      <div class="relative w-44 lg:w-56 shrink-0">
+        <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-ink2" style="font-size:16px;">search</span>
+        <input id="searchInput" type="text" onkeyup="handleSearchInput(this.value)" placeholder="Search a question"
+          class="w-full bg-surface border border-hair rounded-full pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-accent transition-colors">
+      </div>
+      <div id="filterBar" class="flex items-center gap-1.5 overflow-x-auto min-w-0 flex-1" style="scrollbar-width: none;"></div>
+    </div>
+
+    <div id="desktopExamControls" class="hidden md:flex flex-1 items-center justify-center gap-3 min-w-0">
+      <button onclick="goPrev()" id="prevBtn" class="icon-btn w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" aria-label="Previous question">
+        <span class="material-symbols-outlined" style="font-size:20px;">chevron_left</span>
+      </button>
+      <span id="examCounter" class="text-xs font-medium font-mono text-ink2 tabular-nums whitespace-nowrap">1 / 14</span>
+      <button onclick="goNext()" id="nextBtn" class="icon-btn w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" aria-label="Next question">
+        <span class="material-symbols-outlined" style="font-size:20px;">chevron_right</span>
+      </button>
+    </div>
+
+    <!-- Keeps the icon cluster pinned right on mobile, where the middle area is empty -->
+    <div class="flex-1 min-w-0 md:hidden"></div>
+
+    <div class="flex items-center gap-0.5 shrink-0 ml-auto">
+      <div class="flex items-center gap-0.5 bg-surface2 rounded-full p-0.5 mr-0.5 sm:mr-1">
+        <button onclick="setViewMode('list')" id="modeBtnList" class="view-toggle-btn w-7 h-7 rounded-full flex items-center justify-center" aria-label="List view" title="Scroll through all questions">
+          <span class="material-symbols-outlined" style="font-size:17px;">view_agenda</span>
+        </button>
+        <button onclick="setViewMode('exam')" id="modeBtnExam" class="view-toggle-btn w-7 h-7 rounded-full flex items-center justify-center" aria-label="Exam view" title="One question at a time, exam-style">
+          <span class="material-symbols-outlined" style="font-size:17px;">fact_check</span>
+        </button>
+      </div>
+      <button onclick="openCalculator()" class="icon-btn w-8 h-8 rounded-full flex items-center justify-center" aria-label="Directional derivative tool" title="Directional derivative tool">
+        <span class="material-symbols-outlined" style="font-size:19px;">explore</span>
+      </button>
+      <button onclick="toggleTheme()" class="icon-btn w-8 h-8 rounded-full flex items-center justify-center" aria-label="Toggle dark mode" title="Toggle theme">
+        <span class="material-symbols-outlined" id="themeIcon" style="font-size:19px;">dark_mode</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Exam progress bar (all breakpoints) -->
+  <div id="examProgressTrack" class="hidden h-[3px] bg-surface2">
+    <div id="examProgressBar" class="h-full bg-accent transition-all duration-200" style="width:0%;"></div>
+  </div>
+</header>
+
+<!-- Main -->
+<main id="main" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+  <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8 items-start">
+
+    <aside class="hidden lg:block sticky top-16">
+      <div class="text-xs font-medium text-ink2 mb-2 px-1">Jump to question</div>
+      <nav id="sidebarNav" class="grid grid-cols-5 gap-1.5"></nav>
+    </aside>
+
+    <div id="questionsContainer" class="space-y-4 min-w-0"></div>
+  </div>
+
+  <p id="emptyState" class="hidden text-center text-sm text-ink2 py-16">No questions match your search.</p>
+
+  <!-- Prev/next bar under the question (desktop/tablet only — mobile has the bottom bar) -->
+  <div id="examBottomNav" class="hidden md:flex items-center justify-between mt-6 pt-5 border-t border-hair">
+    <button onclick="goPrev()" id="prevBtnBottom" class="flex items-center gap-1.5 text-sm font-medium chip px-4 py-2 rounded-full disabled:opacity-30 disabled:pointer-events-none">
+      <span class="material-symbols-outlined" style="font-size:18px;">chevron_left</span> Previous
+    </button>
+    <span id="examCounterBottom" class="text-xs text-ink2 font-mono tabular-nums">1 / 14</span>
+    <button onclick="goNext()" id="nextBtnBottom" class="flex items-center gap-1.5 text-sm font-medium chip px-4 py-2 rounded-full disabled:opacity-30 disabled:pointer-events-none">
+      Next <span class="material-symbols-outlined" style="font-size:18px;">chevron_right</span>
+    </button>
+  </div>
+
+  <!-- Mobile-only spacer so the fixed bottom bar never covers content -->
+  <div class="h-20 md:hidden" aria-hidden="true"></div>
+</main>
+
+<!-- Bottom bar (mobile & tablet only — hidden at md+, where controls live in the top bar) -->
+<nav id="bottomBar" class="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-hair" style="background: var(--bg); padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -2px 12px rgba(20,19,17,0.08);">
+  <div id="bottomBarList" class="hidden flex items-center gap-2 px-3 py-2.5">
+    <div class="relative flex-1 min-w-0">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-ink2" style="font-size:16px;">search</span>
+      <input id="searchInputMobile" type="text" onkeyup="handleSearchInput(this.value)" placeholder="Search a question"
+        class="w-full bg-surface2 border border-hair rounded-full pl-8 pr-3 py-2.5 text-xs focus:outline-none focus:border-accent transition-colors">
+    </div>
+    <div class="relative shrink-0">
+      <button onclick="toggleFilterMenu()" id="filterMenuBtn" class="chip flex items-center gap-1 text-xs font-medium pl-3 pr-2.5 py-2.5 rounded-full whitespace-nowrap max-w-[9.5rem]">
+        <span class="material-symbols-outlined" style="font-size:16px;">tune</span>
+        <span id="filterMenuLabel" class="truncate">All</span>
+      </button>
+      <div id="filterMenu" class="hidden absolute bottom-full right-0 mb-2 w-52 card rounded-xl overflow-hidden" style="box-shadow: var(--shadow-2);">
+        <div id="filterMenuListContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bottomBarExam" class="hidden flex items-center justify-between gap-2 px-2 py-2">
+    <button onclick="goPrev()" id="prevBtnM" class="flex items-center gap-1 text-sm font-medium px-4 py-2.5 rounded-full disabled:opacity-30 disabled:pointer-events-none" style="color: var(--ink);">
+      <span class="material-symbols-outlined" style="font-size:20px;">chevron_left</span> Prev
+    </button>
+    <span id="examCounterM" class="text-xs font-medium font-mono text-ink2 tabular-nums shrink-0">1 / 14</span>
+    <button onclick="goNext()" id="nextBtnM" class="flex items-center gap-1 text-sm font-medium px-4 py-2.5 rounded-full disabled:opacity-30 disabled:pointer-events-none bg-accent text-white">
+      Next <span class="material-symbols-outlined" style="font-size:20px;">chevron_right</span>
+    </button>
+  </div>
+</nav>
+
+<footer class="border-t border-hair py-5 text-center text-xs text-ink2" style="padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));">
+  © 2026 Multivariable Calculus Solutions
+</footer>
+
+<!-- Calculator Dialog -->
+<dialog id="calcDialog">
+  <div class="w-full h-full flex items-center justify-center p-4" onclick="if(event.target===this) closeCalculator()">
+    <div class="card rounded-xl2 w-full max-w-sm p-6 fade-in" style="box-shadow: var(--shadow-2);">
+      <div class="flex items-start justify-between mb-5">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-accent">explore</span>
+          <div>
+            <h2 class="font-medium text-sm">Directional derivative</h2>
+            <p class="text-xs text-ink2 tex2jax_process">Computes $D_\mathbf{u}f = \nabla f \cdot \mathbf{u}$</p>
+          </div>
+        </div>
+        <button onclick="closeCalculator()" class="icon-btn w-8 h-8 rounded-full flex items-center justify-center -mt-1 -mr-1" aria-label="Close">
+          <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-medium text-ink2 mb-1.5 tex2jax_process">Gradient $\nabla f = \langle f_x, f_y \rangle$</label>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="calcFx" value="2" placeholder="f_x" class="bg-surface2 border border-hair rounded-lg px-3 py-2 focus:outline-none focus:border-accent">
+            <input type="number" id="calcFy" value="0" placeholder="f_y" class="bg-surface2 border border-hair rounded-lg px-3 py-2 focus:outline-none focus:border-accent">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink2 mb-1.5 tex2jax_process">Direction $\mathbf{v} = \langle v_1, v_2 \rangle$</label>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="calcV1" value="1" placeholder="v_1" class="bg-surface2 border border-hair rounded-lg px-3 py-2 focus:outline-none focus:border-accent">
+            <input type="number" id="calcV2" value="0" placeholder="v_2" class="bg-surface2 border border-hair rounded-lg px-3 py-2 focus:outline-none focus:border-accent">
+          </div>
+        </div>
+
+        <button onclick="runCalculator()" class="w-full bg-accent hover:opacity-90 text-white font-medium py-2.5 rounded-lg transition-opacity">
+          Calculate
+        </button>
+
+        <div class="p-3.5 bg-surface2 rounded-lg space-y-1.5 text-xs">
+          <div class="flex justify-between"><span class="text-ink2">Unit vector</span><span id="resUnitVec" class="font-mono">—</span></div>
+          <div class="flex justify-between"><span class="text-ink2">Directional derivative</span><span id="resDuF" class="font-mono font-medium text-okay">—</span></div>
+          <div class="flex justify-between"><span class="text-ink2">Max rate ‖∇f‖</span><span id="resMaxRate" class="font-mono font-medium text-accent">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const questionsData = [
+            {
+                id: 1,
+                title: "Critical Points of a Two-Variable Function",
+                category: "critical",
+                categoryLabel: "Critical Points",
+                funcText: "f(x, y) = 3x^2y + y^3 - 3x^2 - 3y^2 + 2",
+                questionHtml: "Find the critical points of the function $f(x, y) = 3x^2y + y^3 - 3x^2 - 3y^2 + 2$.",
+                finalAnswerType: "options",
+                finalAnswer: "Options A, B, C: $(0,0)$, $(0,2)$, and $(1,1)$",
+                steps: [
+                    {
+                        title: "1. Compute Partial Derivatives",
+                        content: "Set $f_x = 0$ and $f_y = 0$ simultaneously:\n$$f_x = \\frac{\\partial}{\\partial x}(3x^2y + y^3 - 3x^2 - 3y^2 + 2) = 6xy - 6x = 6x(y - 1)$$\n$$f_y = \\frac{\\partial}{\\partial y}(3x^2y + y^3 - 3x^2 - 3y^2 + 2) = 3x^2 + 3y^2 - 6y$$"
+                    },
+                    {
+                        title: "2. Analyze Equation (1): $6x(y - 1) = 0$",
+                        content: "This equation implies two cases: either $x = 0$ or $y = 1$."
+                    },
+                    {
+                        title: "3. Case 1: $x = 0$",
+                        content: "Substitute $x = 0$ into $f_y = 0$:\n$$3(0)^2 + 3y^2 - 6y = 0 \\implies 3y(y - 2) = 0$$\nThis yields $y = 0$ and $y = 2$.\n**Critical Points from Case 1:** $(0, 0)$ and $(0, 2)$."
+                    },
+                    {
+                        title: "4. Case 2: $y = 1$",
+                        content: "Substitute $y = 1$ into $f_y = 0$:\n$$3x^2 + 3(1)^2 - 6(1) = 0 \\implies 3x^2 - 3 = 0 \\implies x^2 = 1 \\implies x = \\pm 1$$\n**Critical Points from Case 2:** $(1, 1)$ and $(-1, 1)$."
+                    },
+                    {
+                        title: "Conclusion",
+                        content: "The critical points are $(0,0)$, $(0,2)$, $(1,1)$, and $(-1,1)$. Matching the provided multiple-choice options, the selected correct options are **A, B, and C**."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Directional Derivatives & Tangent Plane Existence",
+                category: "max-dd",
+                categoryLabel: "Directional Derivatives",
+                funcText: "f(x,y) = \\frac{xy^2}{x^2+y^4}",
+                questionHtml: "Analyze the directional derivatives at $(0,0)$ and tangent plane existence for $f(x,y) = \\frac{xy^2}{x^2+y^4}$ (for $(x,y) \\neq (0,0)$ and $f(0,0)=0$).",
+                finalAnswerType: "options",
+                finalAnswer: "Options B and D",
+                steps: [
+                    {
+                        title: "1. Definition of Directional Derivative at Origin",
+                        content: "Let $\\mathbf{u} = \\langle u_1, u_2 \\rangle$ be a unit vector. By definition:\n$$D_\\mathbf{u}f(0,0) = \\lim_{t \\to 0} \\frac{f(t u_1, t u_2) - f(0,0)}{t}$$\nSubstitute $f(t u_1, t u_2) = \\frac{(t u_1)(t u_2)^2}{(t u_1)^2 + (t u_2)^4} = \\frac{t^3 u_1 u_2^2}{t^2 u_1^2 + t^4 u_2^4}$:\n$$D_\\mathbf{u}f(0,0) = \\lim_{t \\to 0} \\frac{t^3 u_1 u_2^2}{t(t^2 u_1^2 + t^4 u_2^4)} = \\lim_{t \\to 0} \\frac{u_1 u_2^2}{u_1^2 + t^2 u_2^4}$$"
+                    },
+                    {
+                        title: "2. Evaluate Limit for $u_1 \\neq 0$",
+                        content: "When $u_1 \\neq 0$, taking $t \\to 0$ gives:\n$$D_\\mathbf{u}f(0,0) = \\frac{u_1 u_2^2}{u_1^2 + 0} = \\frac{u_2^2}{u_1}$$\nThus **Option B** is TRUE."
+                    },
+                    {
+                        title: "3. Non-differentiability & Tangent Plane",
+                        content: "Since $D_\\mathbf{u}f(0,0) = \\frac{u_2^2}{u_1}$ is a non-linear expression of $u_1, u_2$ (it does NOT equal $f_x u_1 + f_y u_2$), $f$ is not differentiable at $(0,0)$. Thus, the tangent plane does not exist, making **Option D** TRUE."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Directions of Zero Change (Zero Directional Derivative)",
+                category: "max-dd",
+                categoryLabel: "Directional Derivatives",
+                funcText: "f(x,y,z) = 2x^3 + y^2 - z^3 \\quad \\text{at } (1,1,1)",
+                questionHtml: "Find the unit directions $\\mathbf{u}$ along which there is no change in $f(x,y,z) = 2x^3 + y^2 - z^3$ at the point $(1,1,1)$.",
+                finalAnswerType: "options",
+                finalAnswer: "Options A, D, E",
+                steps: [
+                    {
+                        title: "1. Condition for Zero Rate of Change",
+                        content: "\"No change\" means the directional derivative is zero:\n$$D_\\mathbf{u}f(1,1,1) = \\nabla f(1,1,1) \\cdot \\mathbf{u} = 0$$"
+                    },
+                    {
+                        title: "2. Compute Gradient at $(1,1,1)$",
+                        content: "$$\\nabla f(x,y,z) = \\langle 6x^2, 2y, -3z^2 \\rangle$$\n$$\\nabla f(1,1,1) = \\langle 6(1)^2, 2(1), -3(1)^2 \\rangle = \\langle 6, 2, -3 \\rangle$$"
+                    },
+                    {
+                        title: "3. Test Given Options for Orthogonality",
+                        content: "We test $\\langle 6, 2, -3 \\rangle \\cdot \\mathbf{u} = 0$:\n\n• **Option A:** $\\langle 6, 2, -3 \\rangle \\cdot \\left\\langle \\frac{1}{\\sqrt{5}}, 0, \\frac{2}{\\sqrt{5}} \\right\\rangle = \\frac{6 + 0 - 6}{\\sqrt{5}} = 0$ (Valid)\n• **Option D:** $\\langle 6, 2, -3 \\rangle \\cdot \\left\\langle 0, \\frac{3}{\\sqrt{13}}, \\frac{2}{\\sqrt{13}} \\right\\rangle = \\frac{0 + 6 - 6}{\\sqrt{13}} = 0$ (Valid)\n• **Option E:** $\\langle 6, 2, -3 \\rangle \\cdot \\left\\langle \\frac{2}{\\sqrt{17}}, -\\frac{3}{\\sqrt{17}}, \\frac{2}{\\sqrt{17}} \\right\\rangle = \\frac{12 - 6 - 6}{\\sqrt{17}} = 0$ (Valid)"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Linear Approximation Coefficient Sum",
+                category: "tangent",
+                categoryLabel: "Linear Approximation",
+                funcText: "f(x,y) = ye^x - \\frac{1}{4}(x^2 + y^2) \\quad \\text{at } (0,1)",
+                questionHtml: "Find the value of $A + 2B + 4C$ for the linear approximation $L_f(x,y) = Ax + By + C$ of $f(x,y) = ye^x - \\frac{1}{4}(x^2 + y^2)$ at $(0,1)$.",
+                finalAnswerType: "value",
+                finalAnswer: "3",
+                steps: [
+                    {
+                        title: "1. Formula for Linear Approximation",
+                        content: "$$L_f(x,y) = f(a,b) + f_x(a,b)(x - a) + f_y(a,b)(y - b)$$\nHere, $(a,b) = (0,1)$."
+                    },
+                    {
+                        title: "2. Evaluate $f(0,1)$ and Partials",
+                        content: "• $f(0,1) = 1 \\cdot e^0 - \\frac{1}{4}(0^2 + 1^2) = 1 - \\frac{1}{4} = \\frac{3}{4}$\n• $f_x(x,y) = ye^x - \\frac{x}{2} \\implies f_x(0,1) = 1 \\cdot e^0 - 0 = 1$\n• $f_y(x,y) = e^x - \\frac{y}{2} \\implies f_y(0,1) = e^0 - \\frac{1}{2} = \\frac{1}{2}$"
+                    },
+                    {
+                        title: "3. Construct $L_f(x,y)$ and Identify Coefficients",
+                        content: "$$L_f(x,y) = \\frac{3}{4} + 1(x - 0) + \\frac{1}{2}(y - 1) = x + \\frac{1}{2}y + \\left(\\frac{3}{4} - \\frac{1}{2}\\right) = x + \\frac{1}{2}y + \\frac{1}{4}$$\nComparing with $L_f(x,y) = Ax + By + C$:\n$$A = 1, \\quad B = \\frac{1}{2}, \\quad C = \\frac{1}{4}$$"
+                    },
+                    {
+                        title: "4. Calculate $A + 2B + 4C$",
+                        content: "$$A + 2B + 4C = 1 + 2\\left(\\frac{1}{2}\\right) + 4\\left(\\frac{1}{4}\\right) = 1 + 1 + 1 = 3$$"
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "Cardinality of Directional Derivative Vectors",
+                category: "max-dd",
+                categoryLabel: "Directional Derivatives",
+                funcText: "f(x,y) = 2\\sqrt{x^2+4y} \\quad \\text{at } (-2,3)",
+                questionHtml: "Find the cardinality of the set $S$ of unit vectors $\\mathbf{u}$ for which $D_\\mathbf{u}f(-2,3) = 0$, where $f(x,y) = 2\\sqrt{x^2+4y}$.",
+                finalAnswerType: "value",
+                finalAnswer: "2",
+                steps: [
+                    {
+                        title: "1. Compute Partial Derivatives of $f$",
+                        content: "$$f_x = 2 \\cdot \\frac{1}{2\\sqrt{x^2+4y}} \\cdot 2x = \\frac{2x}{\\sqrt{x^2+4y}}$$\n$$f_y = 2 \\cdot \\frac{1}{2\\sqrt{x^2+4y}} \\cdot 4 = \\frac{4}{\\sqrt{x^2+4y}}$$"
+                    },
+                    {
+                        title: "2. Evaluate Gradient at $(-2, 3)$",
+                        content: "Denominator: $\\sqrt{(-2)^2 + 4(3)} = \\sqrt{4 + 12} = \\sqrt{16} = 4$.\n$$\\nabla f(-2,3) = \\left\\langle \\frac{2(-2)}{4}, \\frac{4}{4} \\right\\rangle = \\langle -1, 1 \\rangle$$"
+                    },
+                    {
+                        title: "3. Solve for Unit Vectors with $\\nabla f \\cdot \\mathbf{u} = 0$",
+                        content: "Let $\\mathbf{u} = \\langle u_1, u_2 \\rangle$. Then:\n$$\\langle -1, 1 \\rangle \\cdot \\langle u_1, u_2 \\rangle = -u_1 + u_2 = 0 \\implies u_1 = u_2$$\nSince $\\mathbf{u}$ is a unit vector, $u_1^2 + u_2^2 = 1 \\implies 2u_1^2 = 1 \\implies u_1 = \\pm \\frac{1}{\\sqrt{2}}$.\nTherefore, there are exactly 2 unit vectors:\n$$\\mathbf{u}_1 = \\left\\langle \\frac{1}{\\sqrt{2}}, \\frac{1}{\\sqrt{2}} \\right\\rangle, \\quad \\mathbf{u}_2 = \\left\\langle -\\frac{1}{\\sqrt{2}}, -\\frac{1}{\\sqrt{2}} \\right\\rangle$$\nThe cardinality of $S$ is $|S| = 2$."
+                    }
+                ]
+            },
+            {
+                id: 6,
+                title: "Linear Estimation Multiplier $\\beta$",
+                category: "tangent",
+                categoryLabel: "Linear Approximation",
+                funcText: "f(x,y) = xye^x \\quad \\text{at } (1,1)",
+                questionHtml: "Find $\\beta$ given the linear estimate $f(1.2, 0.9) \\approx \\beta e$ for $f(x,y) = xye^x$ at $(1,1)$.",
+                finalAnswerType: "value",
+                finalAnswer: "1.3",
+                steps: [
+                    {
+                        title: "1. Evaluate $f(1,1)$ and Derivatives",
+                        content: "• $f(1,1) = 1 \\cdot 1 \\cdot e^1 = e$\n• $f_x(x,y) = ye^x + xye^x = y(x+1)e^x \\implies f_x(1,1) = 1(1+1)e^1 = 2e$\n• $f_y(x,y) = xe^x \\implies f_y(1,1) = 1e^1 = e$"
+                    },
+                    {
+                        title: "2. Linearization Formula at $(1,1)$",
+                        content: "$$L_f(x,y) = f(1,1) + f_x(1,1)(x - 1) + f_y(1,1)(y - 1)$$\n$$L_f(1.2, 0.9) = e + 2e(1.2 - 1) + e(0.9 - 1)$$"
+                    },
+                    {
+                        title: "3. Simplify Approximation",
+                        content: "$$L_f(1.2, 0.9) = e + 2e(0.2) + e(-0.1) = e + 0.4e - 0.1e = 1.3e$$\nEquating $1.3e = \\beta e \\implies \\beta = 1.3$."
+                    }
+                ]
+            },
+            {
+                id: 7,
+                title: "Properties of Temperature Field Rate of Change",
+                category: "max-dd",
+                categoryLabel: "Rate of Change",
+                funcText: "T(x,y,z) = e^{-(x^2+y^2+z^2)}",
+                questionHtml: "Choose the true statements regarding the rate of change of $T(x,y,z) = e^{-(x^2+y^2+z^2)}$.",
+                finalAnswerType: "options",
+                finalAnswer: "Options A and C",
+                steps: [
+                    {
+                        title: "1. Partial Derivative Continuity (Option A)",
+                        content: "$$T_x = -2x e^{-(x^2+y^2+z^2)}$$\nSince polynomial and exponential functions are continuous everywhere on $\\mathbb{R}^3$, $T_x$ is continuous everywhere. **Option A is TRUE**."
+                    },
+                    {
+                        title: "2. Rate of Change at Origin (Option C)",
+                        content: "The gradient at origin $(0,0,0)$ is:\n$$\\nabla T(0,0,0) = \\langle 0, 0, 0 \\rangle$$\nFor any unit vector $\\mathbf{u}$, $D_\\mathbf{u}T(0,0,0) = \\mathbf{0} \\cdot \\mathbf{u} = 0$.\nSince it is zero in all directions, the rate of change at the origin is constant in all directions. **Option C is TRUE**."
+                    }
+                ]
+            },
+            {
+                id: 8,
+                title: "Directional Rate of Change Calculation",
+                category: "max-dd",
+                categoryLabel: "Directional Derivatives",
+                funcText: "T = e^{-(x^2+y^2+z^2)} \\quad \\text{at } (1,0,0) \\text{ towards } (8,6,0)",
+                questionHtml: "Find $10Ae$ if $A$ is the rate of change of $T = e^{-(x^2+y^2+z^2)}$ at $(1,0,0)$ toward $(8,6,0)$.",
+                finalAnswerType: "value",
+                finalAnswer: "-\\frac{140}{\\sqrt{85}} \\quad (\\approx -15.18)",
+                steps: [
+                    {
+                        title: "1. Unit Vector Construction",
+                        content: "Vector from $(1,0,0)$ to $(8,6,0)$:\n$$\\mathbf{v} = \\langle 8-1, 6-0, 0-0 \\rangle = \\langle 7, 6, 0 \\rangle$$\nMagnitude $|\\mathbf{v}| = \\sqrt{7^2 + 6^2 + 0^2} = \\sqrt{49 + 36} = \\sqrt{85}$.\nUnit vector $\\mathbf{u} = \\left\\langle \\frac{7}{\\sqrt{85}}, \\frac{6}{\\sqrt{85}}, 0 \\right\\rangle$."
+                    },
+                    {
+                        title: "2. Compute Gradient at $(1,0,0)$",
+                        content: "$$\\nabla T(1,0,0) = \\left\\langle -2(1)e^{-1}, -2(0)e^{-1}, -2(0)e^{-1} \\right\\rangle = \\left\\langle -\\frac{2}{e}, 0, 0 \\right\\rangle$$"
+                    },
+                    {
+                        title: "3. Directional Derivative $A$ and Final Scaled Answer",
+                        content: "$$A = \\nabla T \\cdot \\mathbf{u} = -\\frac{2}{e} \\cdot \\frac{7}{\\sqrt{85}} = -\\frac{14}{e\\sqrt{85}}$$\nMultiply by $10e$:\n$$10Ae = 10 e \\left(-\\frac{14}{e\\sqrt{85}}\\right) = -\\frac{140}{\\sqrt{85}} \\approx -15.18$$"
+                    }
+                ]
+            },
+            {
+                id: 9,
+                title: "Maximum Rate of Change & Gradient Direction",
+                category: "max-dd",
+                categoryLabel: "Gradient Properties",
+                funcText: "T(x,y,z) = e^{-(x^2+y^2+z^2)} \\quad \\text{at } (a,b,c)",
+                questionHtml: "Which statements are true regarding the maximum rate of change of $T = e^{-(x^2+y^2+z^2)}$ at point $(a,b,c)$?",
+                finalAnswerType: "options",
+                finalAnswer: "Options A and C",
+                steps: [
+                    {
+                        title: "1. Maximum Rate of Change Magnitude (Option A)",
+                        content: "$$\\nabla T(a,b,c) = -2e^{-(a^2+b^2+c^2)} \\langle a, b, c \\rangle$$\nMagnitude $|\\nabla T| = 2e^{-(a^2+b^2+c^2)} \\sqrt{a^2+b^2+c^2}$. **Option A is TRUE**."
+                    },
+                    {
+                        title: "2. Direction of Maximum Rate of Change (Option C)",
+                        content: "Maximum rate occurs in the direction of the gradient vector $\\nabla T$, which yields the unit vector:\n$$\\mathbf{u}_{max} = \\left\\langle -\\frac{a}{\\sqrt{a^2+b^2+c^2}}, -\\frac{b}{\\sqrt{a^2+b^2+c^2}}, -\\frac{c}{\\sqrt{a^2+b^2+c^2}} \\right\\rangle$$\n**Option C is TRUE**."
+                    }
+                ]
+            },
+            {
+                id: 10,
+                title: "Maximum Directional Derivative at Origin (Exponential-Power)",
+                category: "max-dd",
+                categoryLabel: "Max Directional Derivative",
+                funcText: "f_1(x,y) = y^6 e^{5x} \\quad \\text{at } (0,0)",
+                questionHtml: "Find out the maximum directional derivative at $(0,0)$ of the function $f_1(x,y) = y^6 e^{5x}$.",
+                finalAnswerType: "value",
+                finalAnswer: "0",
+                steps: [
+                    {
+                        title: "1. Partial Derivatives",
+                        content: "$$\\frac{\\partial f_1}{\\partial x} = 5y^6 e^{5x}, \\quad \\frac{\\partial f_1}{\\partial y} = 6y^5 e^{5x}$$"
+                    },
+                    {
+                        title: "2. Gradient at $(0,0)$",
+                        content: "$$\\nabla f_1(0,0) = \\langle 5(0)^6 e^0, 6(0)^5 e^0 \\rangle = \\langle 0, 0 \\rangle$$"
+                    },
+                    {
+                        title: "3. Maximum Value",
+                        content: "The maximum directional derivative is $\|\n\\nabla f_1(0,0)\| = \\sqrt{0^2 + 0^2} = 0$."
+                    }
+                ]
+            },
+            {
+                id: 11,
+                title: "Maximum Directional Derivative of Quadratic Polynomial",
+                category: "max-dd",
+                categoryLabel: "Max Directional Derivative",
+                funcText: "f_2(x,y) = 5 - 4x^2 + 2x - 6y^2 \\quad \\text{at } (0,0)",
+                questionHtml: "Find out the maximum directional derivative at $(0,0)$ of the function $f_2(x,y) = 5 - 4x^2 + 2x - 6y^2$.",
+                finalAnswerType: "value",
+                finalAnswer: "2",
+                steps: [
+                    {
+                        title: "1. Compute Partial Derivatives",
+                        content: "$$\\frac{\\partial f_2}{\\partial x} = -8x + 2, \\quad \\frac{\\partial f_2}{\\partial y} = -12y$$"
+                    },
+                    {
+                        title: "2. Evaluate Gradient at $(0,0)$",
+                        content: "$$\\frac{\\partial f_2}{\\partial x}(0,0) = 2, \\quad \\frac{\\partial f_2}{\\partial y}(0,0) = 0 \\implies \\nabla f_2(0,0) = \\langle 2, 0 \\rangle$$"
+                    },
+                    {
+                        title: "3. Compute Gradient Magnitude",
+                        content: "$$\\|\\nabla f_2(0,0)\\| = \\sqrt{2^2 + 0^2} = 2$$"
+                    }
+                ]
+            },
+            {
+                id: 12,
+                title: "Maximum Directional Derivative of Trigonometric Function",
+                category: "max-dd",
+                categoryLabel: "Max Directional Derivative",
+                funcText: "f_3(x,y) = 5x \\sin(2x) + 2y \\cos(5y) \\quad \\text{at } (0,0)",
+                questionHtml: "Find out the maximum directional derivative at $(0,0)$ of the function $f_3(x,y) = 5x \\sin(2x) + 2y \\cos(5y)$.",
+                finalAnswerType: "value",
+                finalAnswer: "2",
+                steps: [
+                    {
+                        title: "1. Compute Partial Derivatives via Product Rule",
+                        content: "$$\\frac{\\partial f_3}{\\partial x} = 5\\sin(2x) + 10x\\cos(2x)$$\n$$\\frac{\\partial f_3}{\\partial y} = 2\\cos(5y) - 10y\\sin(5y)$$"
+                    },
+                    {
+                        title: "2. Evaluate at $(0,0)$",
+                        content: "$$\\frac{\\partial f_3}{\\partial x}(0,0) = 5(0) + 0 = 0$$\n$$\\frac{\\partial f_3}{\\partial y}(0,0) = 2\\cos(0) - 0 = 2$$\n$$\\nabla f_3(0,0) = \\langle 0, 2 \\rangle$$"
+                    },
+                    {
+                        title: "3. Max Directional Derivative",
+                        content: "$$\\|\\nabla f_3(0,0)\\| = \\sqrt{0^2 + 2^2} = 2$$"
+                    }
+                ]
+            },
+            {
+                id: 13,
+                title: "Tangent Plane Equation & Linear Expression",
+                category: "tangent",
+                categoryLabel: "Tangent Planes",
+                funcText: "z = 4 - x^2 - y^3 \\quad \\text{at } (1,1,2)",
+                questionHtml: "The equation of the tangent plane to $z = 4 - x^2 - y^3$ at $(1,1,2)$ is $z = Ax + By + C$. Find the value of $C - A - B$.",
+                finalAnswerType: "value",
+                finalAnswer: "12",
+                steps: [
+                    {
+                        title: "1. Partial Derivatives at $(1,1)$",
+                        content: "$$z_x = -2x \\implies A = z_x(1,1) = -2$$\n$$z_y = -3y^2 \\implies B = z_y(1,1) = -3$$"
+                    },
+                    {
+                        title: "2. Plane Equation Formulation",
+                        content: "$$z - z_0 = z_x(1,1)(x - x_0) + z_y(1,1)(y - y_0)$$\n$$z - 2 = -2(x - 1) - 3(y - 1)$$\n$$z = -2x - 3y + 2 + 2 + 3 \\implies z = -2x - 3y + 7$$\nThus, $A = -2$, $B = -3$, and $C = 7$."
+                    },
+                    {
+                        title: "3. Calculate $C - A - B$",
+                        content: "$$C - A - B = 7 - (-2) - (-3) = 7 + 2 + 3 = 12$$"
+                    }
+                ]
+            },
+            {
+                id: 14,
+                title: "Partial Derivative from Tangent Line Slope",
+                category: "tangent",
+                categoryLabel: "Tangent Line & Partials",
+                funcText: "f: \\mathbb{R}^2 \\to \\mathbb{R}, \\quad f(1,1)=3",
+                questionHtml: "Let $f : \\mathbb{R}^2 \\to \\mathbb{R}$ have continuous partial derivatives. Suppose $f(1,1) = 3$, and $(0,1,5)$ is a point on the tangent line to the graph of $f$ at $(1,1)$ in the direction $(1,0)$. Find $f_x(1,1)$.",
+                finalAnswerType: "value",
+                finalAnswer: "-2",
+                steps: [
+                    {
+                        title: "1. Tangent Line Coordinates",
+                        content: "Point of tangency: $(1, 1, f(1,1)) = (1, 1, 3)$.\nGiven point on tangent line: $(0, 1, 5)$."
+                    },
+                    {
+                        title: "2. Direction Alignment",
+                        content: "The direction vector is $(1,0)$, meaning $y$ remains fixed at $y = 1$. The line lies entirely in the slice plane $y = 1$."
+                    },
+                    {
+                        title: "3. Compute Slope $f_x(1,1)$",
+                        content: "$$f_x(1,1) = \\frac{\\Delta z}{\\Delta x} = \\frac{5 - 3}{0 - 1} = \\frac{2}{-1} = -2$$"
+                    }
+                ]
+            }
+        ];
+</script>
+
+<script>
+// ---------- Category metadata ----------
+const CATEGORIES = [
+  { id: 'all', label: 'All questions' },
+  { id: 'max-dd', label: 'Directional derivatives' },
+  { id: 'critical', label: 'Critical points' },
+  { id: 'tangent', label: 'Tangent & linear approx.' },
+];
+
+const CATEGORY_STYLE = {
+  'max-dd': { text: 'text-catA', bg: 'bg-catASoft' },
+  'critical': { text: 'text-catB', bg: 'bg-catBSoft' },
+  'tangent': { text: 'text-catC', bg: 'bg-catCSoft' },
+};
+
+let currentFilter = 'all';
+let viewMode = 'list'; // 'list' | 'exam'
+let examIndex = 0;
+
+// ---------- Theme ----------
+function applyTheme(mode) {
+  const root = document.documentElement;
+  if (mode === 'dark') {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.textContent = mode === 'dark' ? 'light_mode' : 'dark_mode';
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  const next = isDark ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('calc-portal-theme', next); } catch (e) {}
+}
+
+function initTheme() {
+  let stored = null;
+  try { stored = localStorage.getItem('calc-portal-theme'); } catch (e) {}
+  if (stored === 'dark' || stored === 'light') {
+    applyTheme(stored);
+  } else {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+}
+
+// ---------- Filter bar (desktop chips + mobile filter menu) ----------
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  if (bar) {
+    bar.innerHTML = CATEGORIES.map(cat => `
+      <button
+        onclick="setFilter('${cat.id}')"
+        id="chip-${cat.id}"
+        class="chip filter-chip ${cat.id === currentFilter ? 'active' : ''} text-xs font-medium px-3 py-1.5 rounded-full whitespace-nowrap"
+      >${cat.label}</button>
+    `).join('');
+  }
+
+  const menu = document.getElementById('filterMenuListContainer');
+  if (menu) {
+    menu.innerHTML = CATEGORIES.map(cat => `
+      <button
+        onclick="setFilter('${cat.id}')"
+        id="menuitem-${cat.id}"
+        class="filter-menu-item ${cat.id === currentFilter ? 'active' : ''}"
+      >
+        <span>${cat.label}</span>
+        <span class="material-symbols-outlined ${cat.id === currentFilter ? '' : 'opacity-0'}" style="font-size:16px;">check</span>
+      </button>
+    `).join('');
+  }
+
+  updateFilterMenuLabel();
+}
+
+function updateFilterMenuLabel() {
+  const label = document.getElementById('filterMenuLabel');
+  if (!label) return;
+  const cat = CATEGORIES.find(c => c.id === currentFilter);
+  label.textContent = currentFilter === 'all' ? 'All' : (cat ? cat.label : 'All');
+}
+
+function setFilter(id) {
+  currentFilter = id;
+
+  document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+  const chip = document.getElementById(`chip-${id}`);
+  if (chip) chip.classList.add('active');
+
+  document.querySelectorAll('.filter-menu-item').forEach(item => {
+    item.classList.remove('active');
+    const check = item.querySelector('.material-symbols-outlined');
+    if (check) check.classList.add('opacity-0');
+  });
+  const menuItem = document.getElementById(`menuitem-${id}`);
+  if (menuItem) {
+    menuItem.classList.add('active');
+    const check = menuItem.querySelector('.material-symbols-outlined');
+    if (check) check.classList.remove('opacity-0');
+  }
+
+  updateFilterMenuLabel();
+  closeFilterMenu();
+  filterQuestions();
+}
+
+function toggleFilterMenu() {
+  const menu = document.getElementById('filterMenu');
+  menu.classList.toggle('hidden');
+}
+
+function closeFilterMenu() {
+  document.getElementById('filterMenu').classList.add('hidden');
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('filterMenu');
+  const btn = document.getElementById('filterMenuBtn');
+  if (!menu || menu.classList.contains('hidden')) return;
+  if (!menu.contains(e.target) && !btn.contains(e.target)) closeFilterMenu();
+});
+
+// ---------- Search (kept in sync across desktop / mobile inputs) ----------
+function handleSearchInput(value) {
+  const desktop = document.getElementById('searchInput');
+  const mobile = document.getElementById('searchInputMobile');
+  if (desktop && desktop.value !== value) desktop.value = value;
+  if (mobile && mobile.value !== value) mobile.value = value;
+  filterQuestions();
+}
+
+// ---------- Render ----------
+function renderSidebar() {
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = questionsData.map((q, idx) => `
+    <a href="#q-${q.id}" onclick="handleSidebarClick(event, ${idx})" id="navlink-${idx}" class="flex items-center justify-center h-8 rounded-lg text-xs font-medium border border-hair hover:border-accent hover:text-accent transition-colors" title="${q.title}">${q.id}</a>
+  `).join('');
+}
+
+function handleSidebarClick(e, idx) {
+  if (viewMode === 'exam') {
+    e.preventDefault();
+    examIndex = idx;
+    updateExamView();
+  }
+}
+
+function renderPortal() {
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+
+  questionsData.forEach((q, idx) => {
+    const style = CATEGORY_STYLE[q.category] || { text: 'text-ink2', bg: 'bg-surface2' };
+    const searchText = `${q.title} ${q.categoryLabel} ${q.funcText} ${q.finalAnswer}`.toLowerCase();
+    const isFirst = idx === 0;
+
+    const card = document.createElement('article');
+    card.id = `q-${q.id}`;
+    card.dataset.category = q.category;
+    card.dataset.searchText = searchText;
+    card.className = 'card rounded-xl2 p-4 sm:p-6 lg:p-7 space-y-4 sm:space-y-5 scroll-mt-32 sm:scroll-mt-40';
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-2.5 sm:gap-3 min-w-0">
+          <span class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${style.bg} ${style.text} font-mono font-medium text-xs sm:text-sm shrink-0 mt-0.5">
+            ${q.id}
+          </span>
+          <div class="min-w-0">
+            <h3 class="prose-serif text-fluid-title font-semibold leading-snug tex2jax_process">${q.title}</h3>
+            <span class="inline-block mt-1 text-[11px] font-medium ${style.text} ${style.bg} px-2 py-0.5 rounded-full">
+              ${q.categoryLabel}
+            </span>
+          </div>
+        </div>
+        <button onclick="copySolution(${q.id})" class="icon-btn w-8 h-8 rounded-full flex items-center justify-center shrink-0" aria-label="Copy solution summary" title="Copy solution summary">
+          <span class="material-symbols-outlined" style="font-size:18px;">content_copy</span>
+        </button>
+      </div>
+
+      <div class="prose-serif text-fluid-body bg-surface2 rounded-xl p-3.5 sm:p-5 leading-[1.7] tex2jax_process max-w-[68ch]">
+        ${q.questionHtml}
+      </div>
+
+      <div class="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-hair" style="background: var(--okay-soft);">
+        <div class="min-w-0">
+          <div class="text-xs font-medium text-okay">Final answer</div>
+          <div class="prose-serif text-fluid-body font-medium mt-1 tex2jax_process">${q.finalAnswer}</div>
+        </div>
+        <span class="material-symbols-outlined text-okay shrink-0">check_circle</span>
+      </div>
+
+      <div>
+        <button onclick="toggleSteps(${q.id})" id="stepsToggle-${q.id}" class="flex items-center gap-1.5 text-sm font-medium text-ink2 hover:text-ink transition-colors">
+          <span class="material-symbols-outlined chevron ${isFirst ? 'open' : ''}" id="stepIcon-${q.id}" style="font-size:20px;">expand_more</span>
+          <span>Full derivation</span>
+        </button>
+
+        <div id="stepsPanel-${q.id}" class="steps-panel ${isFirst ? 'open' : ''}">
+          <div>
+            <div class="space-y-4 pt-3.5">
+              ${q.steps.map(step => `
+                <div class="border-l-2 border-hair pl-3 sm:pl-4 py-0.5">
+                  <div class="font-semibold text-sm text-accent mb-1.5 tex2jax_process">${step.title}</div>
+                  <div class="prose-serif text-fluid-step text-ink2 leading-[1.7] whitespace-pre-line tex2jax_process max-w-[68ch]">${step.content}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise();
+  }
+}
+
+function toggleSteps(id) {
+  const panel = document.getElementById(`stepsPanel-${id}`);
+  const icon = document.getElementById(`stepIcon-${id}`);
+  panel.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+
+// ---------- Filtering ----------
+function filterQuestions() {
+  const desktop = document.getElementById('searchInput');
+  const mobile = document.getElementById('searchInputMobile');
+  const query = ((desktop && desktop.value) || (mobile && mobile.value) || '').toLowerCase().trim();
+  const cards = document.querySelectorAll('#questionsContainer > article');
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const categoryMatch = (currentFilter === 'all') || (card.dataset.category === currentFilter);
+    const searchMatch = !query || card.dataset.searchText.includes(query);
+    const show = categoryMatch && searchMatch;
+    card.style.display = show ? '' : 'none';
+    if (show) visibleCount++;
+  });
+
+  document.getElementById('emptyState').classList.toggle('hidden', visibleCount !== 0);
+}
+
+// ---------- View mode: list vs exam ----------
+function setViewMode(mode) {
+  viewMode = mode;
+  closeFilterMenu();
+
+  document.getElementById('modeBtnList').classList.toggle('active', mode === 'list');
+  document.getElementById('modeBtnExam').classList.toggle('active', mode === 'exam');
+
+  const isExam = mode === 'exam';
+
+  // Desktop (≥md) middle area: size is controlled purely by the "hidden md:flex"
+  // Tailwind classes in the markup. Here we only control *mode* visibility, via
+  // inline style, which never fights the responsive classes: clearing the inline
+  // style hands control back to the "hidden md:flex" breakpoint classes.
+  const dList = document.getElementById('desktopListControls');
+  const dExam = document.getElementById('desktopExamControls');
+  dList.style.display = isExam ? 'none' : '';
+  dExam.style.display = isExam ? '' : 'none';
+
+  // Bottom bar (<md): both panels carry a permanent base "flex" class alongside
+  // "hidden", so toggling only the "hidden" class is safe — Tailwind's .hidden
+  // rule is always generated after .flex, so it reliably wins whenever present.
+  document.getElementById('bottomBarList').classList.toggle('hidden', isExam);
+  document.getElementById('bottomBarExam').classList.toggle('hidden', !isExam);
+
+  // examBottomNav needs both breakpoint (md+) AND mode control, same technique as above.
+  document.getElementById('examBottomNav').style.display = isExam ? '' : 'none';
+
+  document.getElementById('examProgressTrack').classList.toggle('hidden', !isExam);
+
+  if (isExam) {
+    updateExamView();
+  } else {
+    document.querySelectorAll('#sidebarNav a').forEach(a => a.classList.remove('active-nav'));
+    filterQuestions();
+  }
+}
+
+function updateExamView() {
+  const total = questionsData.length;
+  const current = questionsData[examIndex];
+
+  questionsData.forEach((q, idx) => {
+    const card = document.getElementById(`q-${q.id}`);
+    if (card) card.style.display = (idx === examIndex) ? '' : 'none';
+  });
+
+  document.getElementById('emptyState').classList.add('hidden');
+
+  const counterText = `${examIndex + 1} / ${total}`;
+  ['examCounter', 'examCounterM', 'examCounterBottom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = counterText;
+  });
+
+  const atStart = examIndex === 0;
+  const atEnd = examIndex === total - 1;
+  ['prevBtn', 'prevBtnM', 'prevBtnBottom'].forEach(id => { document.getElementById(id).disabled = atStart; });
+  ['nextBtn', 'nextBtnM', 'nextBtnBottom'].forEach(id => { document.getElementById(id).disabled = atEnd; });
+
+  document.getElementById('examProgressBar').style.width = `${((examIndex + 1) / total) * 100}%`;
+
+  document.querySelectorAll('#sidebarNav a').forEach((a, idx) => {
+    a.classList.toggle('active-nav', idx === examIndex);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (window.MathJax && window.MathJax.typesetPromise && current) {
+    window.MathJax.typesetPromise();
+  }
+}
+
+function goPrev() {
+  if (examIndex > 0) {
+    examIndex--;
+    updateExamView();
+  }
+}
+
+function goNext() {
+  if (examIndex < questionsData.length - 1) {
+    examIndex++;
+    updateExamView();
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (viewMode !== 'exam') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+
+// ---------- Copy ----------
+function copySolution(id) {
+  const q = questionsData.find(item => item.id === id);
+  if (!q) return;
+
+  const textToCopy = `Question ${q.id}: ${q.title}\nFunction: ${q.funcText}\nFinal answer: ${q.finalAnswer}`;
+
+  const finish = () => showToast('Copied to clipboard');
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(textToCopy).then(finish).catch(() => legacyCopy(textToCopy, finish));
+  } else {
+    legacyCopy(textToCopy, finish);
+  }
+}
+
+function legacyCopy(text, cb) {
+  const el = document.createElement('textarea');
+  el.value = text;
+  el.style.position = 'fixed';
+  el.style.opacity = '0';
+  document.body.appendChild(el);
+  el.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(el);
+  cb();
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast fixed bottom-6 left-1/2 -translate-x-1/2 z-50 card px-4 py-2.5 rounded-full text-xs font-medium flex items-center gap-2';
+  toast.innerHTML = `<span class="material-symbols-outlined text-okay" style="font-size:16px;">check_circle</span><span>${message}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2200);
+}
+
+// ---------- Calculator dialog ----------
+function openCalculator() {
+  const dialog = document.getElementById('calcDialog');
+  dialog.showModal();
+}
+function closeCalculator() {
+  document.getElementById('calcDialog').close();
+}
+
+function runCalculator() {
+  const fx = parseFloat(document.getElementById('calcFx').value) || 0;
+  const fy = parseFloat(document.getElementById('calcFy').value) || 0;
+  const v1 = parseFloat(document.getElementById('calcV1').value) || 0;
+  const v2 = parseFloat(document.getElementById('calcV2').value) || 0;
+
+  const vMag = Math.sqrt(v1 * v1 + v2 * v2);
+  if (vMag === 0) {
+    document.getElementById('resUnitVec').innerText = 'undefined';
+    document.getElementById('resDuF').innerText = '—';
+    document.getElementById('resMaxRate').innerText = '—';
+    return;
+  }
+
+  const u1 = v1 / vMag;
+  const u2 = v2 / vMag;
+  const duf = fx * u1 + fy * u2;
+  const maxRate = Math.sqrt(fx * fx + fy * fy);
+
+  document.getElementById('resUnitVec').innerText = `⟨${u1.toFixed(3)}, ${u2.toFixed(3)}⟩`;
+  document.getElementById('resDuF').innerText = duf.toFixed(4);
+  document.getElementById('resMaxRate').innerText = maxRate.toFixed(4);
+}
+
+// ---------- Init ----------
+window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  renderFilterBar();
+  renderSidebar();
+  renderPortal();
+  setViewMode('list');
+});
+</script>
+
+</body>
+</html>

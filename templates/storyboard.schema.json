@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "iitm/storyboard-v1",
+  "title": "IITM storyboard",
+  "description": "Machine-readable scene timeline for one question's short(s). Consumed by the shared scene runtime (_runtime/hic-scenes.js) and the render pipeline. Timings are integer milliseconds; beats must tile [0, total_duration_ms] without gaps or overlaps.",
+  "type": "object",
+  "required": ["id", "title", "aspect", "fps", "total_duration_ms", "scenes"],
+  "additionalProperties": false,
+  "properties": {
+    "id":       { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Question id; must match index.md frontmatter id" },
+    "title":    { "type": "string" },
+    "aspect":   { "enum": ["9:16", "16:9"], "description": "Stage aspect; runtime maps this to the stage box via hic-frame-compatible dims" },
+    "fps":      { "type": "integer", "minimum": 24, "maximum": 60, "description": "Export frame rate (WebM capture)" },
+    "total_duration_ms": { "type": "integer", "minimum": 1000 },
+    "background": { "type": "string", "description": "CSS color/paint for the stage; defaults #0e1512", "default": "#0e1512" },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/scene" }
+    }
+  },
+  "$defs": {
+    "scene": {
+      "type": "object",
+      "required": ["id", "start_ms", "end_ms", "elements"],
+      "additionalProperties": false,
+      "properties": {
+        "id":       { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "start_ms": { "type": "integer", "minimum": 0,
+          "description": "Exclusive lower bound of the scene; scene 0 must start at 0" },
+        "end_ms":   { "type": "integer", "minimum": 1,
+          "description": "Exclusive upper bound; last scene's end_ms must equal total_duration_ms; scenes must not overlap; gaps allowed (nothing visible in a gap)" },
+        "fade_out_ms": { "type": "integer", "minimum": 0, "default": 0,
+          "description": "Soft-cut: fade the whole scene out over its final N ms (scene-local)" },
+        "elements": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/element" }
+        }
+      }
+    },
+    "element": {
+      "type": "object",
+      "required": ["id", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id":    { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$", "description": "Unique within the storyboard; becomes the DOM id" },
+        "type":  { "enum": ["text", "latex", "cards", "image", "shape", "answer"] },
+        "text":  { "type": "string", "description": "text/latex/answer content. text: plain; latex: $..$/$$..$$; answer: final value" },
+        "size":  { "enum": ["title", "sub", "body"], "default": "body", "description": "text only: rendered scale (container-query sized)" },
+        "of":    { "type": "string", "description": "shape only: id of the element to overlay (highlight/underline geometry)" },
+        "src":   { "type": "string", "description": "image: URL or repo-relative path" },
+        "shape": { "enum": ["box", "circle", "underline", "highlight"], "description": "shape type; 'highlight' = animated border box like the original #highlight-box" },
+        "color": { "type": "string", "description": "CSS color for text/shape/latex" },
+        "items": { "type": "array", "minItems": 1, "description": "cards only", "items": {
+          "type": "object", "required": ["label"], "additionalProperties": false,
+          "properties": {
+            "label":  { "type": "string" },
+            "accent": { "type": "string", "description": "CSS color for the label" },
+            "muted":  { "type": "boolean", "default": false, "description": "muted card renders grey (the '?' card)" }
+          }
+        } },
+
+        "at_ms":  { "type": "integer", "minimum": 0, "description": "Element-local timeline origin (defaults to 0 = scene start)" },
+        "in":     { "$ref": "#/$defs/anim" },
+        "out":    { "$ref": "#/$defs/anim" },
+        "hold":   { "$ref": "#/$defs/anim" },
+        "loop":   { "type": "boolean", "default": false, "description": "text only: 900ms blink loop while visible" }
+      }
+    },
+    "anim": {
+      "type": "object",
+      "description": "Staged animation phase: pop = overshoot scale-in; fade = opacity only; slide = fade+translate. Times are relative to at_ms.",
+      "required": [],
+      "additionalProperties": false,
+      "properties": {
+        "type":   { "enum": ["pop", "fade", "slide"] },
+        "start_ms": { "type": "integer", "minimum": 0 },
+        "dur_ms": { "type": "integer", "minimum": 1, "default": 600 },
+        "from_x": { "type": "number", "description": "slide: x-offset px at start (e.g. -30 enters from left)" },
+        "from_y": { "type": "number", "description": "slide: y-offset px at start (e.g. 50 enters from below)" },
+        "overshoot": { "type": "number", "default": 1.7, "description": "pop: spring constant s in ease-back" },
+        "stagger_ms": { "type": "integer", "minimum": 0, "default": 0, "description": "cards only: per-item delay added to each successive card's in.start_ms" }
+      }
+    }
+  }
+}

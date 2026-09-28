@@ -1,0 +1,55 @@
+{
+  "id": "pq-001",
+  "title": "Two Queens, One King",
+  "aspect": "9:16",
+  "fps": 30,
+  "total_duration_ms": 15000,
+  "background": "#0e1512",
+  "scenes": [
+    {
+      "id": "intro",
+      "start_ms": 0,
+      "end_ms": 4500,
+      "elements": [
+        { "id": "title", "type": "text", "text": "DRAW 4 CARDS", "color": "#e7ba55",
+          "in": { "type": "slide", "start_ms": 200, "dur_ms": 600, "from_y": 20 } },
+        { "id": "hand", "type": "cards",
+          "items": [
+            { "label": "Q♥", "accent": "#c0324b" },
+            { "label": "Q♠" },
+            { "label": "K♦", "accent": "#c0324b" },
+            { "label": "?", "muted": true }
+          ],
+          "in": { "type": "slide", "start_ms": 600, "dur_ms": 600, "from_y": 50, "stagger_ms": 200 } },
+        { "id": "sub", "type": "text", "text": "2 Queens • 1 King • 1 Other", "color": "#93a29a",
+          "in": { "type": "fade", "start_ms": 1600, "dur_ms": 600 } }
+      ]
+    },
+    {
+      "id": "combos",
+      "start_ms": 4500,
+      "end_ms": 9500,
+      "elements": [
+        { "id": "q-queens", "type": "latex", "text": "\\binom{4}{2} = 6", "color": "#ffffff",
+          "at_ms": 300, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } },
+        { "id": "q-kings", "type": "latex", "text": "\\binom{4}{1} = 4", "color": "#ffffff",
+          "at_ms": 1100, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } },
+        { "id": "q-others", "type": "latex", "text": "\\binom{44}{1} = 44", "color": "#ffffff",
+          "at_ms": 1900, "in": { "type": "slide", "start_ms": 0, "dur_ms": 600, "from_x": -30 } }
+      ]
+    },
+    {
+      "id": "answer",
+      "start_ms": 9500,
+      "end_ms": 15000,
+      "elements": [
+        { "id": "equation", "type": "latex", "text": "\\frac{\\binom{4}{2} \\times \\binom{4}{1} \\times \\binom{44}{1}}{\\binom{52}{4}} = \\frac{1056}{270725}",
+          "color": "#ffffff", "at_ms": 300, "in": { "type": "slide", "start_ms": 0, "dur_ms": 800, "from_y": -20 } },
+        { "id": "final", "type": "answer", "text": "≈ 0.0039", "color": "#6ed9b1",
+          "at_ms": 3000, "in": { "type": "pop", "start_ms": 0, "dur_ms": 800 } },
+        { "id": "hi", "type": "shape", "shape": "highlight", "of": "final",
+          "at_ms": 4000, "in": { "type": "pop", "start_ms": 0, "dur_ms": 500, "overshoot": 1.7 } }
+      ]
+    }
+  ]
+}
