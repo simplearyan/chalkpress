@@ -281,7 +281,6 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
   <!-- ===================== UP NEXT ===================== -->
   <section class="zone-upnext" id="part-next">
     <div class="wrap-upnext">
-      <div class="upnext-label">UP NEXT</div>
       {next && (
         <a class="upnext-card" href={`/${next.data.subject}/${next.data.id}/`}>
           <div class="upnext-thumb">
@@ -291,6 +290,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
             </div>
           </div>
           <div class="upnext-meta">
+            <div class="u-t">{next.data.topic.replace(/-/g, ' ')}</div>
             <div class="u-title">{next.data.title}</div>
             <div class="u-sub">{next.data.source}</div>
           </div>
@@ -299,7 +299,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           </span>
         </a>
       )}
-      <a class="upnext-library-link" href="/">← Back to Shorts library</a>
+      <a class="btn text upnext-library-link" href="/">← Back to Shorts library</a>
     </div>
   </section>
 </Base>
@@ -481,4 +481,35 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
       copyText(code?.textContent?.trim() ?? '', btn);
     });
   }
+
+  /* Resume (mock §11): remember the scroll position per question and offer a
+     way back to the top. Skipped on hash loads, shallow positions (<500px) and
+     anything older than 7 days; "Start over" clears the key and resets the
+     walkthrough through the handle it exposes. */
+  (function resume() {
+    const KEY = `pos:${location.pathname}`;
+    let save: ReturnType<typeof setTimeout> | undefined;
+    addEventListener('scroll', () => {
+      clearTimeout(save);
+      save = setTimeout(() => {
+        try { localStorage.setItem(KEY, JSON.stringify({ y: Math.round(scrollY), t: Date.now() })); } catch { /* private mode */ }
+      }, 250);
+    }, { passive: true });
+    addEventListener('load', () => {
+      if (location.hash) return;
+      let s: { y: number; t: number } | null = null;
+      try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { s = null; }
+      if (!s || s.y < 500 || Date.now() - s.t > 6048e5) return;
+      const y = s.y;
+      setTimeout(() => {
+        scrollTo({ top: y, behavior: 'auto' });
+        (window as any).__snack?.('Picked up where you left off', 'Start over', () => {
+          try { localStorage.removeItem(KEY); } catch { /* private mode */ }
+          (window as any).walkReset?.();
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+        }, 6000);
+      }, 400);
+    });
+  })();
 </script>
