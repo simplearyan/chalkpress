@@ -104,10 +104,13 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           <p class="try-prompt">Pick the option that matches your answer, then check it against the worked steps below.</p>
           <div class="try-options">
             {d.options.map((o) => (
-              <button type="button" class="try-option" data-correct={String(o.correct)}>{o.text}</button>
+              <button type="button" class="try-option" data-correct={String(o.correct)}>
+                <span class="k" aria-hidden="true">{o.id}</span>
+                <span class="opt-body">{o.text}</span>
+              </button>
             ))}
           </div>
-          <div class="try-feedback" id="try-feedback"></div>
+          <div class="try-feedback" id="try-feedback" role="status" aria-live="polite"></div>
         </div>
       )}
 
@@ -131,7 +134,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 
         <div class="solution-flow">
           <h3 class="flow-title">Solving it</h3>
-          <div class="steps">
+          <div class="steps" id="steps">
             {steps.map((s) => (
               <div class="step">
                 <div class="step-num">{s.n}</div>
@@ -142,6 +145,21 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
               </div>
             ))}
           </div>
+
+          {/* Walkthrough: the steps and the answer start hidden in favour of
+              this control strip (see the script below). */}
+          <div class="walk-ctl" id="walk-ctl" hidden>
+            <span class="walk-dots" id="walk-dots" aria-hidden="true">
+              {steps.map(() => <i />)}
+            </span>
+            <span class="walk-count" id="walk-count" role="status" aria-live="polite"></span>
+            <button class="btn text" id="walk-all" type="button">Show all</button>
+            <button class="btn filled" id="walk-next" type="button">
+              <span class="walk-label">Next step</span>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+            </button>
+          </div>
+
           {/* the answer sits after the timeline, not inside it — the steps are
               the derivation, this is the result (and the walkthrough reveals it
               between the two) */}
@@ -279,22 +297,110 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
     setTimeout(mark, 600);
   })();
 
-  // try-it quiz feedback
+  /* Try-it quiz: one attempt. Picking locks the row and always marks the
+     correct option, so a wrong guess still teaches something; the outcome is
+     announced through the live region on #try-feedback. */
+  const tryCard = document.getElementById('try-yourself');
+  const opts = [...document.querySelectorAll<HTMLButtonElement>('.try-option')];
   const fb = document.getElementById('try-feedback');
-  document.querySelectorAll<HTMLButtonElement>('.try-option').forEach((btn) => {
+  for (const btn of opts) {
     btn.addEventListener('click', () => {
+      if (!tryCard || tryCard.classList.contains('answered')) return;
+      tryCard.classList.add('answered');
       const ok = btn.dataset.correct === 'true';
-      document.querySelectorAll<HTMLButtonElement>('.try-option').forEach((b) => {
-        b.classList.toggle('correct', b === btn && ok);
+      for (const b of opts) {
+        b.disabled = true;
+        b.classList.toggle('correct', b.dataset.correct === 'true');
         b.classList.toggle('incorrect', b === btn && !ok);
-        b.disabled = false;
-      });
+      }
       if (fb) {
         fb.classList.add('shown');
         fb.classList.toggle('is-correct', ok);
         fb.classList.toggle('is-incorrect', !ok);
-        fb.textContent = ok ? '✓ Correct — now watch it worked out below.' : '✗ Not quite — re-check the givens and try again.';
+        fb.textContent = ok
+          ? '✓ Correct — the full breakdown is one step at a time below.'
+          : '✗ Not quite — the correct option is highlighted; the breakdown is below.';
       }
     });
-  });
+  }
+
+  /* Walkthrough: reveal the derivation one step at a time, then the answer.
+     The steps render visible so the page still reads without JS; this script
+     collapses them to step 1 (or the saved step) as soon as it runs. Progress
+     is remembered per question, not globally. */
+  (function walkthrough() {
+    const box = document.getElementById('steps');
+    const ctl = document.getElementById('walk-ctl');
+    const answer = document.getElementById('answer');
+    if (!box || !ctl || !answer) return;
+    const steps = [...box.querySelectorAll<HTMLElement>('.step')];
+    if (!steps.length) return;
+    const dots = [...document.querySelectorAll<HTMLElement>('#walk-dots i')];
+    const count = document.getElementById('walk-count');
+    const nextBtn = document.getElementById('walk-next') as HTMLButtonElement;
+    const allBtn = document.getElementById('walk-all') as HTMLButtonElement;
+    const label = nextBtn.querySelector('.walk-label') as HTMLElement;
+    const flow = box.parentElement as HTMLElement;
+    const total = steps.length;
+    const KEY = `walk-step:${location.pathname}`;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let n = 1;
+    try {
+      const saved = parseInt(localStorage.getItem(KEY) ?? '0', 10);
+      if (saved > 1) n = Math.min(saved, total + 1);
+    } catch (e) {}
+
+    flow.classList.add('walk');
+    ctl.hidden = false;
+    const view = (el: HTMLElement) => el.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    const replay = (el: HTMLElement) => {
+      el.classList.remove('reveal');
+      void el.offsetWidth;   /* restart the animation */
+      el.classList.add('reveal');
+    };
+    function render(animate: boolean) {
+      try { localStorage.setItem(KEY, String(n)); } catch (e) {}
+      steps.forEach((s, i) => {
+        s.hidden = i >= n;
+        /* the last revealed step draws no connector: nothing follows it yet */
+        s.classList.toggle('linked', i < n - 1);
+        if (animate && i === n - 1) replay(s);
+      });
+      const done = n > total;
+      answer.hidden = !done;
+      if (done) {
+        steps[total - 1]?.classList.add('linked');
+        if (animate) replay(answer);
+        if (count) count.textContent = 'All steps done';
+        if (label) label.textContent = 'Restart';
+        if (allBtn) allBtn.hidden = true;
+      } else {
+        if (count) count.textContent = `Step ${n} of ${total}`;
+        if (label) label.textContent = n === total ? 'Show answer' : 'Next step';
+        if (allBtn) allBtn.hidden = false;
+      }
+      dots.forEach((d, i) => d.classList.toggle('on', i < Math.min(n, total)));
+      const arrow = nextBtn.querySelector('svg');
+      if (arrow) (arrow as SVGElement).style.display = done ? 'none' : '';
+    }
+    nextBtn.addEventListener('click', () => {
+      if (n > total) {
+        n = 1;
+        render(false);
+        flow.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+        return;
+      }
+      n += 1;
+      render(true);
+      view(n > total ? answer : steps[n - 1]);
+    });
+    allBtn.addEventListener('click', () => {
+      n = total + 1;
+      render(true);
+      view(answer);
+    });
+    /* the resume snackbar (a later step) resets the walkthrough through this */
+    (window as any).walkReset = () => { n = 1; render(false); };
+    render(false);
+  })();
 </script>

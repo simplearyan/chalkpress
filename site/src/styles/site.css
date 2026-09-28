@@ -335,24 +335,34 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   .given-card { position: sticky; top: calc(88px + env(safe-area-inset-top, 0px)); }
 }
 
-/* try-it quiz */
-.try-card { margin-bottom: 2rem; border-left: 3px solid var(--accent); }
-.try-badge { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 0.8rem; text-transform: uppercase; }
-[data-theme="dark"] .try-badge { color: var(--accent); }
-.try-prompt { margin: 0 0 1.1rem; font-size: 1rem; color: var(--on-surface); line-height: 1.55; }
-.try-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
-@media (max-width: 560px) { .try-options { grid-template-columns: 1fr; } }
+/* try-it quiz (mock): options are outlined rows you press, not filled cards */
+.try-card { margin-bottom: 1.5rem; border-left: 3px solid var(--accent); }
+.try-badge { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; }
+.try-prompt { margin: 4px 0 16px; font-size: 1.05rem; color: var(--on-surface); line-height: 1.55; }
+.try-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 719px) { .try-options { grid-template-columns: minmax(0, 1fr); } }
 .try-option {
-  font-family: var(--sans); font-size: 0.9rem; text-align: left; padding: 0.7rem 0.95rem; border-radius: 9px;
-  border: 1px solid var(--outline-var); background: var(--container); color: var(--on-surface); cursor: pointer; transition: all 0.15s ease;
+  display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 16px;
+  border-radius: 14px; border: 1px solid var(--outline); background: transparent;
+  color: var(--on-surface); font-family: var(--sans); font-size: 0.9rem; text-align: left; cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.try-option:hover { border-color: var(--accent); }
-.try-option.correct { background: var(--success-container); border-color: var(--success); color: var(--on-primary-container); font-weight: 600; }
+.try-option .k {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--container-hi); flex-shrink: 0;
+  display: grid; place-items: center; font-family: var(--mono); font-size: 0.8rem; font-weight: 500;
+}
+.try-option .opt-body { min-width: 0; }
+/* option math is read at a glance, not studied: a touch smaller than KaTeX's
+   inline default keeps every option on one or two lines */
+.try-option .katex { font-size: 1.05em; }
+.try-option:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 8%, transparent); border-color: var(--primary); }
+.try-option:disabled { cursor: default; }
+.try-option.correct { background: var(--success-container); border-color: var(--success); color: var(--on-primary-container); font-weight: 500; }
 .try-option.incorrect { background: var(--error-container); border-color: var(--error); color: var(--on-surface); }
-.try-feedback { margin-top: 1rem; font-size: 0.9rem; font-weight: 500; display: none; }
+.try-feedback { display: none; margin-top: 16px; padding: 12px 16px; border-radius: 12px; font-weight: 500; }
 .try-feedback.shown { display: block; }
-.try-feedback.is-correct { color: var(--success); }
-.try-feedback.is-incorrect { color: var(--error); }
+.try-feedback.is-correct { background: var(--success-container); color: var(--on-primary-container); }
+.try-feedback.is-incorrect { background: var(--error-container); color: var(--on-surface); }
 
 /* given spec-card — label left, value right, hairlines between rows only */
 .given-card .tag { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; }
@@ -409,6 +419,38 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 /* a long expression is scaled down a step on phones before it has to scroll */
 .prose p:has(.katex-display) .katex { font-size: clamp(0.95rem, 4.4vw, 1.21em); }
 .prose p[tabindex]:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* ── walkthrough: reveal the derivation one step at a time ──────────────── */
+.walk-ctl {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+  margin: 4px 0 8px; padding: 12px 16px; border-radius: 16px; background: var(--container);
+}
+.walk-ctl[hidden] { display: none; }
+.walk-dots { display: flex; gap: 6px; margin-right: 4px; }
+.walk-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--outline-var); transition: background 0.2s ease, transform 0.2s ease; }
+.walk-dots i.on { background: var(--primary); transform: scale(1.25); }
+.walk-count { flex: 1; min-width: 120px; font-size: 0.9rem; font-weight: 500; color: var(--on-variant); }
+
+/* buttons — one shape scale for the whole site */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px;
+  border: 0; border-radius: 999px; cursor: pointer; text-decoration: none;
+  font-family: var(--sans); font-size: 0.875rem; font-weight: 500;
+  transition: box-shadow 0.15s ease, background 0.15s ease, filter 0.15s ease;
+}
+.btn svg { width: 18px; height: 18px; }
+.btn.filled { background: var(--primary); color: var(--on-primary); }
+.btn.filled:hover { box-shadow: var(--e1); }
+.btn.text { background: transparent; color: var(--primary); padding: 0 12px; }
+.btn.text:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+
+/* a hidden step takes its connector with it, and the last visible step shows
+   none — so the timeline always looks finished at the current depth */
+.walk .step[hidden], .walk .answer-card[hidden] { display: none; }
+.walk .step:not(.linked)::before { display: none; }
+.reveal { animation: reveal 0.35s ease both; }
+@keyframes reveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal { animation: none; } }
 
 /* Part 2 is not a band: the same page tone as Part 1, separated by rhythm only
    (its padding comes from the shared section rule above). */
