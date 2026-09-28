@@ -496,6 +496,14 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .ctl-row .time .dim { color: var(--on-variant); }
 .ctl-row .grow { flex: 1; }
 
+/* keyboard hint — fine pointers only (the media query hides it on touch),
+   matching the mock's `@media(hover:hover) and (pointer:fine)` gate */
+.kbd-hint { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .kbd-hint { display: block; text-align: center; font-family: var(--mono); font-size: 0.72rem; color: var(--outline); padding: 8px 0 2px; }
+}
+kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant); }
+
 /* tool buttons: the product actions live on their own row, out of the way of
    the player's own controls (spec §13.4); icon-only on phones */
 .tool-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 8px 0; }

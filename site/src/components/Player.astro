@@ -72,14 +72,14 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
   </div>
 
   <div class="ctl-row">
-    <button id="btn-play" class="pl-btn" type="button" aria-label="Play" title="Play">
+    <button id="btn-play" class="pl-btn" type="button" aria-label="Play" title="Play" aria-keyshortcuts="K">
       <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
       <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
       <svg class="i-replay" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" /></svg>
     </button>
     <span class="time"><span id="t-cur">0:00</span><span class="dim"> / {totalLabel}</span></span>
     <span class="grow"></span>
-    <button id="btn-reset" class="pl-btn" type="button" aria-label="Restart from beginning" title="Restart">
+    <button id="btn-reset" class="pl-btn" type="button" aria-label="Restart from beginning" title="Restart" aria-keyshortcuts="R">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
     </button>
   </div>
@@ -104,6 +104,10 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
       <span class="lbl-default">Renderer</span><span class="lbl-copied">Copied!</span>
     </button>
   </div>
+
+  {/* keyboard discoverability — hidden by CSS everywhere but fine-pointer
+      devices (spec §7); the arrows refer to the focused native range */}
+  <div class="kbd-hint"><kbd>K</kbd> play / pause &nbsp;·&nbsp; <kbd>R</kbd> restart &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> seek</div>
 </section>
 
 <!-- test-renderer's preview engine (HicRenderer): same SVG-foreignObject renderer,
@@ -210,6 +214,33 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
     });
     drawAt(0);   /* first frame onto the canvas */
 
+    /* ── haptics: a tick on play and a softer one on restart (mock) ── */
+    btnPlay.addEventListener('click', () => { if (navigator.vibrate) navigator.vibrate(12); });
+    document.getElementById('btn-reset').addEventListener('click', () => { if (navigator.vibrate) navigator.vibrate(8); });
+
+    /* ── K / R shortcuts: only while the card is on screen, never while typing,
+          never with modifiers held. Visibility is measured from the rect at press
+          time rather than an IntersectionObserver — same gate, exact, no observer
+          to starve — and arrow seeking stays on the focused native range so page
+          scroll and the scrubber's own keyboard support keep working. ── */
+    addEventListener('keydown', (e) => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const g = e.target;
+      if (g && (/^(INPUT|TEXTAREA|SELECT)$/.test(g.tagName) || g.isContentEditable)) return;
+      const k = e.key.toLowerCase();
+      if (k !== 'k' && k !== 'r') return;
+      const r = shell.getBoundingClientRect();
+      const visible = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
+      if (visible < Math.min(r.height, innerHeight) * 0.4) return;
+      e.preventDefault();
+      if (k === 'k') btnPlay.click();
+      else {
+        const was = shell.dataset.state === 'playing';
+        document.getElementById('btn-reset').click();
+        if (was) btnPlay.click();
+      }
+    });
+
     /* ── aspect: re-frame the preview (the clip is re-rasterised at the new
           size, so there is never a stretched bitmap) ── */
     const btnAspect = document.getElementById('btn-aspect');
@@ -244,11 +275,24 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
     } catch (e) {}
 
     /* ── copy actions: TR paste format + the regenerating AI prompt ── */
+    /* label swap + snackbar; falls back to execCommand where the async
+       clipboard API is unavailable (non-secure context / automation) */
     function copyText(text, btn, okMs) {
-      navigator.clipboard.writeText(text).then(() => {
+      const done = () => {
         btn.classList.add('copied');
         setTimeout(() => btn.classList.remove('copied'), okMs || 1600);
-      }).catch(() => {});
+        if (window.__snack) window.__snack('Copied to clipboard');
+      };
+      const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fallback);
+      } else fallback();
     }
     document.getElementById('btn-copy-code').addEventListener('click', function () { copyText(fenced, this); });
     document.getElementById('btn-copy-prompt').addEventListener('click', function () { copyText(fullPrompt, this, 2200); });
