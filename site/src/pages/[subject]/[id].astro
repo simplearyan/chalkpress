@@ -286,7 +286,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           <div class="upnext-thumb">
             <div class="upnext-poster">
               <div class="u-eyebrow">{posterFor(next.data).eyebrow}</div>
-              <div class="u-value" style={`color:${posterFor(next.data).color}`}>{posterFor(next.data).value}</div>
+              <div class={`u-value pv-${posterFor(next.data).tone}`}>{posterFor(next.data).value}</div>
             </div>
           </div>
           <div class="upnext-meta">

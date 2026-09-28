@@ -36,45 +36,37 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
       <p>{questions.length} question{questions.length === 1 ? '' : 's'}, worked in full. Search, filter, and flip through exam-style.</p>
     </header>
 
-    <div class="portal-controls" style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.5rem;">
-      <input id="qsearch" type="text" placeholder="Search a question"
-        style="flex:1;min-width:200px;background:var(--surface);border:1px solid var(--outline-var);border-radius:999px;padding:0.5rem 1rem;font-family:var(--sans);font-size:0.9rem;color:var(--on-surface);">
-      <div id="chips" style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+    <div class="portal-controls">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        <input id="qsearch" type="search" placeholder="Search a question" aria-label="Search a question">
+      </div>
+      <div class="chip-row" role="group" aria-label="Filter by topic">
         <button class="chip-btn active" data-cat="all">All</button>
         {categories.map((c) => <button class="chip-btn" data-cat={c}>{c.replace(/-/g, ' ')}</button>)}
       </div>
     </div>
 
-    <div id="qlist" style="display:flex;flex-direction:column;gap:1.2rem;">
+    <div class="qlist" id="qlist">
       {questions.map((e, qi) => (
         <article class="card q-card" data-topic={e.data.topic} data-search={`${e.data.title} ${e.data.topic} ${e.data.answer}`.toLowerCase()} id={`q-${e.data.id}`}>
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:1rem;">
-            <h2 style="font-size:1.15rem;">{qi + 1}. {e.data.title}</h2>
-            <span class="mono" style="font-size:0.68rem;color:var(--on-variant);text-transform:uppercase;letter-spacing:0.05em;">{e.data.topic.replace(/-/g, ' ')}</span>
+          <div class="q-head">
+            <h2>{qi + 1}. {e.data.title}</h2>
+            <span class="q-topic">{e.data.topic.replace(/-/g, ' ')}</span>
           </div>
-          <div class="prose" style="margin-top:0.7rem;" set:html={marked.parse(e.body || '')} />
+          <div class="prose" set:html={marked.parse(e.body || '')} />
           <div class="answer-card">
             <div>
               <div class="label">FINAL ANSWER</div>
-              <div class="value" style="font-size:1.4rem;">{e.data.answer}</div>
+              <div class="value">{e.data.answer}</div>
             </div>
-            <a class="mono" style="font-size:0.8rem;color:var(--primary);text-decoration:none;" href={`/${e.data.subject}/${e.data.id}/`}>open full page →</a>
+            <a class="q-open" href={`/${e.data.subject}/${e.data.id}/`}>open full page →</a>
           </div>
         </article>
       ))}
     </div>
-    <p id="empty" style="display:none;text-align:center;color:var(--on-variant);padding:3rem 0;">No questions match your search.</p>
+    <p id="empty" class="portal-empty" hidden>No questions match your search.</p>
   </div>
-
-  <style>
-    .chip-btn {
-      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.03em;
-      border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant);
-      border-radius: 999px; padding: 0.45rem 0.9rem; cursor: pointer;
-    }
-    .chip-btn.active { background: var(--accent); border-color: var(--accent); color: #fffdfb; }
-    [data-theme="dark"] .chip-btn.active { color: #241a02; }
-  </style>
 
   <script>
     // search + filter (portal island — vanilla, same behavior as the mock)
@@ -92,7 +84,8 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
         card.style.display = ok ? '' : 'none';
         if (ok) visible++;
       }
-      (document.getElementById('empty') as HTMLElement).style.display = visible ? 'none' : '';
+      /* the empty notice hides while anything is visible */
+    (document.getElementById('empty') as HTMLElement).hidden = visible > 0;
     }
     input.addEventListener('input', apply);   // covers typing, paste, IME
     chips.forEach((c) => c.addEventListener('click', () => {

@@ -8,10 +8,10 @@ interface Props {
   sub: string;
   eyebrow: string;
   value: string;
-  valueColor: string;
+  tone: string;
   duration?: string;
 }
-const { href, badge, title, sub, eyebrow, value, valueColor, duration } = Astro.props;
+const { href, badge, title, sub, eyebrow, value, tone, duration } = Astro.props;
 const secs = duration ? Math.round(Number(duration) / 1000) : null;
 ---
 <a class="short-card" href={href}>
@@ -20,7 +20,7 @@ const secs = duration ? Math.round(Number(duration) / 1000) : null;
     {secs && <span class="duration">0:{String(secs).padStart(2, '0')}</span>}
     <div class="short-poster">
       <div class="p-eyebrow">{eyebrow}</div>
-      <div class="p-value" style={`color:${valueColor}`}>{value}</div>
+      <div class={`p-value pv-${tone}`}>{value}</div>
     </div>
     <div class="short-scrim">
       <div class="s-title">{title}</div>

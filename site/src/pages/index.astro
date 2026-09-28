@@ -37,12 +37,12 @@ const entries = all
             sub={e.data.topic.replace(/-/g, ' ')}
             eyebrow={p.eyebrow || e.data.title.toUpperCase().slice(0, 24)}
             value={p.value}
-            valueColor={p.color}
+            tone={p.tone}
             duration={String(e.data.duration_ms)}
           />
         );
       })}
-      <div class="short-card" style="display:flex;align-items:center;justify-content:center;border-style:dashed;box-shadow:none;background:var(--container);aspect-ratio:9/16;color:var(--on-variant);font-family:var(--mono);font-size:0.72rem;">
+      <div class="shelf-more">
         more soon
       </div>
     </div>

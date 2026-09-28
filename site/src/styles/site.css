@@ -102,6 +102,44 @@ h1, h2, h3, p, li, dd, figcaption, .prose, .value, .u-sub, .s-sub {
 }
 .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.5rem; }
 
+/* ── portal: M3 search bar + assist chips + question list (was inline styles) ── */
+.portal-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.search-bar {
+  display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px;
+  height: 44px; padding: 0 16px; border-radius: 999px;
+  background: var(--container); color: var(--on-variant);
+}
+.search-bar svg { width: 18px; height: 18px; flex-shrink: 0; }
+.search-bar:focus-within { outline: 3px solid var(--primary); outline-offset: 2px; }
+.search-bar input {
+  flex: 1; min-width: 0; border: 0; padding: 0; background: transparent; outline: none;
+  font-family: var(--sans); font-size: 0.9rem; color: var(--on-surface);
+}
+.search-bar input::placeholder { color: var(--on-variant); }
+.search-bar input:focus-visible { outline: none; }   /* the ring belongs to the pill */
+.chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.chip-btn {
+  display: inline-flex; align-items: center; height: 32px; padding: 0 12px;
+  border: 1px solid var(--outline); border-radius: 8px;
+  background: transparent; color: var(--on-variant);
+  font-family: var(--sans); font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.chip-btn:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); border-color: var(--primary); color: var(--on-surface); }
+.chip-btn.active, .chip-btn.active:hover {
+  background: var(--tertiary-container); border-color: transparent;
+  color: var(--on-tertiary-container);
+}
+.qlist { display: flex; flex-direction: column; gap: 1.2rem; }
+.q-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.q-head h2 { font-size: 1.15rem; }
+.q-topic { font-family: var(--mono); font-size: 0.68rem; color: var(--on-variant); text-transform: uppercase; letter-spacing: 0.05em; }
+.q-card .prose { margin-top: 0.7rem; }
+.q-card .answer-card .value { font-size: 1.4rem; }
+.q-open { font-family: var(--mono); font-size: 0.8rem; color: var(--primary); text-decoration: none; white-space: nowrap; }
+.q-open:hover { text-decoration: underline; }
+.portal-empty { text-align: center; color: var(--on-variant); padding: 3rem 0; }
+
 /* ═══════════════════════════════════════════════════════════════════════
    APP SHELL — sticky top app bar + bottom navigation (M3)
    Mirrors mocks/problem-1-two-queens-one-king (16).html: a blurred bar that
@@ -199,15 +237,30 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   .nav-hidden .appbar { transform: translateY(-100%); }
 }
 
-/* short card (library) */
+/* short card (library) — tonal shelf tile with an M3 state layer on hover/focus */
 .short-card {
-  display: block; text-decoration: none; color: inherit; border-radius: 16px;
-  background: var(--surface); border: 1px solid var(--outline-var); box-shadow: var(--shadow);
-  overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease;
+  position: relative; display: block; text-decoration: none; color: inherit;
+  border-radius: 20px; background: var(--container); border: 0; box-shadow: none;
+  overflow: hidden;
 }
-.short-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+.short-card::after {
+  content: ''; position: absolute; inset: 0; z-index: 3;
+  background: var(--on-surface); opacity: 0; pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.short-card:hover::after, .short-card:focus-visible::after { opacity: 0.06; }
+/* poster value colours are artwork, keyed by the poster's tone */
+.pv-green { color: #6ed9b1; }
+.pv-gold { color: #e7ba55; }
+/* the "more soon" placeholder keeps the tile's shape without being a link */
+.shelf-more {
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 9 / 16; border-radius: 20px;
+  border: 1px dashed var(--outline-var); background: var(--container);
+  color: var(--on-variant); font-family: var(--mono); font-size: 0.72rem;
+}
 .short-thumb {
-  position: relative; aspect-ratio: 9 / 16; background: #0c110e; overflow: hidden;
+  position: relative; aspect-ratio: 9 / 16; background: #0e1512; overflow: hidden;
   display: flex; align-items: center; justify-content: center; color: #fff;
 }
 .short-thumb .badge {
@@ -500,10 +553,11 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .ctl-row .time .dim { color: var(--on-variant); }
 .ctl-row .grow { flex: 1; }
 
-/* keyboard hint — fine pointers only (the media query hides it on touch),
-   matching the mock's `@media(hover:hover) and (pointer:fine)` gate */
+/* keyboard hint — fine pointers AND roomy widths only: hidden on touch and on
+   small screens (the mock gates on hover/pointer; we add the width tier so the
+   phone-sized window of a desktop browser stays clean) */
 .kbd-hint { display: none; }
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (min-width: 720px) {
   .kbd-hint { display: block; text-align: center; font-family: var(--mono); font-size: 0.72rem; color: var(--outline); padding: 8px 0 2px; }
 }
 kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant); }
