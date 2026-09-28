@@ -3,7 +3,7 @@
 // Only questions far enough along the pipeline get a card.
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import ThemeToggle from '../components/ThemeToggle.astro';
+import AppBar from '../components/AppBar.astro';
 import ShortCard from '../components/ShortCard.astro';
 import { posterFor } from '../lib/posters.js';
 
@@ -17,7 +17,7 @@ const entries = all
   description="Short-form math explainers — every problem worked in full, then repackaged as a short with script, animation, and copyable code."
   ogImage="/og-default.png"
 >
-  <ThemeToggle />
+  <AppBar title="Shorts Library" />
   <div class="wrap">
     <header class="page-head">
       <div class="kicker">SHORT-FORM MATH LAB</div>
@@ -42,7 +42,7 @@ const entries = all
           />
         );
       })}
-      <div class="short-card" style="display:flex;align-items:center;justify-content:center;border-style:dashed;box-shadow:none;background:var(--surface-alt);aspect-ratio:9/16;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.72rem;">
+      <div class="short-card" style="display:flex;align-items:center;justify-content:center;border-style:dashed;box-shadow:none;background:var(--container);aspect-ratio:9/16;color:var(--on-variant);font-family:var(--mono);font-size:0.72rem;">
         more soon
       </div>
     </div>

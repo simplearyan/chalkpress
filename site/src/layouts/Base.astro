@@ -27,7 +27,8 @@ const ogUrl = new URL(base + ogImage, site).href;
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
   <title>{title}</title>
   <meta name="description" content={description} />
 
@@ -72,7 +73,10 @@ const ogUrl = new URL(base + ogImage, site).href;
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- families, weights and the pairings match the reference mock:
+       Google Sans Flex for UI, Literata for display, Roboto Mono for data.
+       Never write a family at a call site — use --sans / --serif / --mono. -->
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Google+Sans+Flex:wght@400;500;600&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -94,6 +98,54 @@ const ogUrl = new URL(base + ogImage, site).href;
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       history.pushState(null, '', href);
     });
+
+    // ── app shell ───────────────────────────────────────────────────────
+    // 1. hairline on the app bar only once content is under it, and the
+    //    phone-only "slide the bar away" behaviour (CSS neutralises it ≥720px).
+    // 2. one scroll-spy drives both the segmented tabs and the bottom nav —
+    //    they share data-tab, so neither component needs to know about the other.
+    (function () {
+      const root = document.documentElement;
+      let last = window.scrollY, ticking = false;
+      window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = Math.max(0, window.scrollY);
+          const d = y - last;
+          root.classList.toggle('scrolled', y > 4);
+          if (y < 80) root.classList.remove('nav-hidden');
+          else if (d > 6) root.classList.add('nav-hidden');
+          else if (d < -6) root.classList.remove('nav-hidden');
+          if (Math.abs(d) > 6) last = y;
+          ticking = false;
+        });
+      }, { passive: true });
+      // leaving phone width: the bar is always visible again, so drop the
+      // scroll-hidden state instead of letting it linger into the layout
+      const wide = window.matchMedia('(min-width: 720px)');
+      wide.addEventListener('change', (e) => { if (e.matches) root.classList.remove('nav-hidden'); });
+    })();
+
+    (function () {
+      const links = [...document.querySelectorAll('[data-tab]')];
+      const secs = [...document.querySelectorAll('[id^="part-"]')];
+      if (!links.length || !secs.length) return;
+      const idOf = (el) => el.id.replace(/^part-/, '');
+      const spy = () => {
+        const line = window.innerHeight * 0.4;
+        let cur = idOf(secs[0]);
+        for (const s of secs) if (s.getBoundingClientRect().top <= line) cur = idOf(s);
+        // the last section is short — reaching the bottom counts as being in it
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+          cur = idOf(secs[secs.length - 1]);
+        }
+        for (const l of links) l.classList.toggle('active', l.dataset.tab === cur);
+      };
+      window.addEventListener('scroll', spy, { passive: true });
+      window.addEventListener('resize', spy);
+      spy();
+    })();
 
     // toggle wiring only — data-theme was already set inline in <head> before
     // first paint (no flash of the wrong theme on refresh). Same 'hic_theme'
@@ -148,10 +200,16 @@ const ogUrl = new URL(base + ogImage, site).href;
 
       const t0 = performance.now();
       let pinned = null, off0 = 0;
+      /* the hash target must clear the sticky app bar, exactly like
+         scroll-padding-top does for anchor clicks — pinning it to 0 would slide
+         the heading under the bar on a reload */
+      function barOffset() {
+        return parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      }
       function acquire() {
         if (hasHash) {
           const el = document.querySelector(location.hash);
-          if (el) { pinned = el; off0 = 0; el.scrollIntoView({ behavior: 'auto', block: 'start' }); }
+          if (el) { pinned = el; off0 = barOffset(); el.scrollIntoView({ behavior: 'auto', block: 'start' }); }
           return !!el;
         }
         const y = window.scrollY;

@@ -4,7 +4,7 @@
 import { getCollection } from 'astro:content';
 import { marked } from 'marked';
 import Base from '../../layouts/Base.astro';
-import ThemeToggle from '../../components/ThemeToggle.astro';
+import AppBar from '../../components/AppBar.astro';
 
 export async function getStaticPaths() {
   const all = await getCollection('subjects');
@@ -28,7 +28,7 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
   description={`${title} solutions portal — ${questions.length} question${questions.length === 1 ? '' : 's'} worked in full with search, topic filters, and animated explainers.`}
   ogImage="/og-default.png"
 >
-  <ThemeToggle />
+  <AppBar title={title} back={{ href: '/', label: 'Library' }} />
   <div class="wrap">
     <header class="page-head">
       <div class="kicker">SOLUTIONS PORTAL</div>
@@ -38,7 +38,7 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
 
     <div class="portal-controls" style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.5rem;">
       <input id="qsearch" type="text" placeholder="Search a question"
-        style="flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:0.5rem 1rem;font-family:'Inter',sans-serif;font-size:0.9rem;color:var(--text);">
+        style="flex:1;min-width:200px;background:var(--surface);border:1px solid var(--outline-var);border-radius:999px;padding:0.5rem 1rem;font-family:var(--sans);font-size:0.9rem;color:var(--on-surface);">
       <div id="chips" style="display:flex;gap:0.4rem;flex-wrap:wrap;">
         <button class="chip-btn active" data-cat="all">All</button>
         {categories.map((c) => <button class="chip-btn" data-cat={c}>{c.replace(/-/g, ' ')}</button>)}
@@ -50,7 +50,7 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
         <article class="card q-card" data-topic={e.data.topic} data-search={`${e.data.title} ${e.data.topic} ${e.data.answer}`.toLowerCase()} id={`q-${e.data.id}`}>
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:1rem;">
             <h2 style="font-size:1.15rem;">{qi + 1}. {e.data.title}</h2>
-            <span class="mono" style="font-size:0.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;">{e.data.topic.replace(/-/g, ' ')}</span>
+            <span class="mono" style="font-size:0.68rem;color:var(--on-variant);text-transform:uppercase;letter-spacing:0.05em;">{e.data.topic.replace(/-/g, ' ')}</span>
           </div>
           <div class="prose" style="margin-top:0.7rem;" set:html={marked.parse(e.body || '')} />
           <div class="answer-card">
@@ -63,13 +63,13 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
         </article>
       ))}
     </div>
-    <p id="empty" style="display:none;text-align:center;color:var(--text-dim);padding:3rem 0;">No questions match your search.</p>
+    <p id="empty" style="display:none;text-align:center;color:var(--on-variant);padding:3rem 0;">No questions match your search.</p>
   </div>
 
   <style>
     .chip-btn {
-      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.03em;
-      border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
+      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.03em;
+      border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant);
       border-radius: 999px; padding: 0.45rem 0.9rem; cursor: pointer;
     }
     .chip-btn.active { background: var(--accent); border-color: var(--accent); color: #fffdfb; }

@@ -6,7 +6,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import { marked } from 'marked';
 import Base from '../../layouts/Base.astro';
-import ThemeToggle from '../../components/ThemeToggle.astro';
+import AppBar from '../../components/AppBar.astro';
+import BottomNav from '../../components/BottomNav.astro';
 import Player from '../../components/Player.astro';
 import { posterFor } from '../../lib/posters.js';
 import { compileStoryboard } from '../../../../runtime/hic-storyboard.esm.js';
@@ -27,6 +28,16 @@ const secs = Math.round((d.duration_ms || 15000) / 1000);
 const title = `${d.title} · IITM Shorts`;
 const description = `${d.title} — ${d.topic.replace(/-/g, ' ')} (${d.difficulty}). Worked solution, narration script, and the animation code behind the ${secs}-second short.`;
 const kicker = `${d.topic.replace(/-/g, ' ').toUpperCase()} · ${d.difficulty.toUpperCase()}`;
+/* the app bar carries the SERIES name (the question title is right below it in
+   the hero); the in-page sections drive both the segmented tabs and the
+   phone bottom nav, keyed on the same data-tab values. */
+const series = d.subject.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+const sections = [
+  { id: 'solve', label: 'Work the problem', short: 'Solve' },
+  { id: 'produce', label: 'Build the short', short: 'Build' },
+  { id: 'next', label: 'Up next', short: 'Up next' },
+];
+const tabs = sections.filter((s) => s.id !== 'next');
 const correct = d.options.find((o) => o.correct);
 
 /* solution.md / script.md live next to index.md in the content store
@@ -68,11 +79,8 @@ try {
 const clip = storyboard ? compileStoryboard(storyboard) : null;
 ---
 <Base title={title} description={description} ogImage={`/meta-src/${d.id}-og.png`}>
-  <ThemeToggle />
-  <a class="back-link back-float" href={`/${d.subject}/`}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
-    Shorts library
-  </a>
+  <AppBar title={series} back={{ href: `/${d.subject}/`, label: 'Library' }} tabs={tabs} />
+  <BottomNav items={sections} />
 
   <div class="wrap-top">
     <header class="page-head">
@@ -80,18 +88,6 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
       <h1>{d.title}</h1>
       <p>{d.source}</p>
     </header>
-
-    <nav class="part-stepper" aria-label="Page sections">
-      <a href="#part-solve" class="stepper-step" data-step="solve">
-        <span class="stepper-dot">1</span>
-        <span class="stepper-text">Work the problem</span>
-      </a>
-      <span class="stepper-line"><span class="stepper-line-fill" id="stepper-fill"></span></span>
-      <a href="#part-produce" class="stepper-step" data-step="produce">
-        <span class="stepper-dot">2</span>
-        <span class="stepper-text">Build the short</span>
-      </a>
-    </nav>
 
     <!-- ===================== PART 1: SOLVE ===================== -->
     <section id="part-solve" class="part part-solve">
@@ -231,7 +227,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
   </section>
 
   <!-- ===================== UP NEXT ===================== -->
-  <section class="zone-upnext">
+  <section class="zone-upnext" id="part-next">
     <div class="wrap-upnext">
       <div class="upnext-label">UP NEXT</div>
       {next && (
@@ -257,22 +253,6 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 </Base>
 
 <script>
-  // stepper: highlight the part currently in view + fill the connector line
-  const fill = document.getElementById('stepper-fill');
-  const stepEls = [...document.querySelectorAll('.stepper-step')];
-  const partSolve = document.getElementById('part-solve');
-  const partProduce = document.getElementById('part-produce');
-  if (fill && stepEls.length === 2) {
-    const io = new IntersectionObserver((entries) => {
-      let idx = 0;
-      for (const en of entries) if (en.isIntersecting) idx = en.target.id === 'part-produce' ? 1 : 0;
-      stepEls.forEach((el, i) => el.classList.toggle('active', i === idx));
-      fill.style.width = idx === 1 ? '100%' : '0%';
-    }, { rootMargin: '-40% 0px -50% 0px' });
-    io.observe(partSolve!);
-    io.observe(partProduce!);
-  }
-
   // try-it quiz feedback
   const fb = document.getElementById('try-feedback');
   document.querySelectorAll<HTMLButtonElement>('.try-option').forEach((btn) => {

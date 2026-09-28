@@ -1,0 +1,25 @@
+---
+// Fixed navigation bar (M3) — phones only (≤719px; CSS hides it above that).
+// Same data-tab contract as the app bar's segmented switch, so the scroll-spy in
+// Base.astro highlights both. Icons follow the mock: the active item fills its
+// glyph (.fl) and punches a cut-out in the page colour (.cut).
+interface Item { id: string; label: string; short: string; }
+interface Props { items: Item[]; }
+const { items } = Astro.props;
+---
+<nav class="bottom-nav" aria-label="Page sections">
+  {items.map((it) => (
+    <a class="bn-item" data-tab={it.id} href={`#part-${it.id}`} aria-label={it.label}>
+      {it.id === 'solve' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/><path d="M9.5 19h5M10.5 21.5h3"/></svg>
+      )}
+      {it.id === 'produce' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="fl" cx="12" cy="12" r="9"/><path class="cut" d="M10 8.6v6.8l5.6-3.4z"/></svg>
+      )}
+      {it.id === 'next' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M6 5.5v13l9.5-6.5z"/><path d="M18.5 5.5v13"/></svg>
+      )}
+      <span>{it.short}</span>
+    </a>
+  ))}
+</nav>
