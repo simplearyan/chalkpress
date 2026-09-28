@@ -9,17 +9,19 @@ source: Original (joint probability of a 4-card draw)
 answer_type: options
 answer: "≈ 0.0039  (1,056 / 270,725)"
 options:
+  # \frac, not \dfrac: these sit inline in a button, and display-style
+  # fractions made every option twice as tall as the option row wants to be
   - id: A
-    text: "$\\dfrac{\\binom{4}{2}\\binom{4}{1}\\binom{44}{1}}{\\binom{52}{4}} = \\dfrac{1056}{270725} \\approx 0.0039$"
+    text: "$\\frac{\\binom{4}{2}\\binom{4}{1}\\binom{44}{1}}{\\binom{52}{4}} = \\frac{1056}{270725} \\approx 0.0039$"
     correct: true
   - id: B
-    text: "$\\dfrac{\\binom{8}{3}}{\\binom{52}{4}} \\approx 0.0017$"
+    text: "$\\frac{\\binom{8}{3}}{\\binom{52}{4}} \\approx 0.0017$"
     correct: false
   - id: C
-    text: "$\\dfrac{\\binom{4}{2} + \\binom{4}{1} + \\binom{44}{1}}{\\binom{52}{4}}$"
+    text: "$\\frac{\\binom{4}{2} + \\binom{4}{1} + \\binom{44}{1}}{\\binom{52}{4}}$"
     correct: false
   - id: D
-    text: "$\\left(\\dfrac{2}{13}\\right)^2 \\cdot \\dfrac{1}{13}$"
+    text: "$\\left(\\frac{2}{13}\\right)^2 \\cdot \\frac{1}{13}$"
     correct: false
 
 status: animated          # solved + scripted + animated in the v1 migration
