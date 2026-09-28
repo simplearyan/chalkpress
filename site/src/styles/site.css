@@ -258,11 +258,6 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   font-weight: 500; font-size: 0.9rem;
 }
 
-.script-sheet { border-left: 3px solid var(--accent); background: var(--bg); padding: 1.2rem 1.4rem; border-radius: 0 8px 8px 0; }
-.script-sheet p { font-family: var(--serif); font-style: italic; margin: 0 0 0.65rem; color: var(--on-surface); font-size: 0.95rem; }
-.script-sheet p:last-child { margin-bottom: 0; font-weight: 600; font-style: normal; color: var(--accent); }
-[data-theme="dark"] .script-sheet p:last-child { color: var(--accent); }
-
 /* ── device card + frame (mock .device): the card is tonal, the frame is the
    only dark surface, and the controls sit on the card's own tone ── */
 .stage-shell {
@@ -455,8 +450,17 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .btn svg { width: 18px; height: 18px; }
 .btn.filled { background: var(--primary); color: var(--on-primary); }
 .btn.filled:hover { box-shadow: var(--e1); }
+.btn.tonal { background: var(--container-hi); color: var(--on-surface); }
+.btn.tonal:hover { box-shadow: var(--e1); }
+.btn.outlined { background: transparent; border: 1px solid var(--outline); color: var(--primary); height: 36px; padding: 0 14px; }
+.btn.outlined:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
 .btn.text { background: transparent; color: var(--primary); padding: 0 12px; }
 .btn.text:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+
+/* one label-swap rule drives every copy button (mock) */
+.lbl-copied { display: none; }
+.copied .lbl-default { display: none; }
+.copied .lbl-copied { display: inline; }
 
 /* a hidden step takes its connector with it, and the last visible step shows
    none — so the timeline always looks finished at the current depth */
@@ -524,47 +528,50 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
   .tool-btn.copied { background: var(--success-container); color: var(--on-primary-container); }
 }
 
-/* script head + plan list */
-.script-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+/* script head, chat-bubble beats and the visual plan (mock §8) */
+.script-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .script-head .title-group { display: flex; align-items: center; gap: 0.6rem; }
-.script-head svg.yt { width: 20px; height: 20px; color: var(--error); flex-shrink: 0; }
+.script-head svg.yt { width: 18px; height: 18px; color: var(--error); flex-shrink: 0; }
 .script-head h3 { font-size: 1.15rem; font-weight: 600; }
-.script-sheet { margin-bottom: 1.6rem; }
-.plan-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.7rem; color: var(--on-surface); }
-.plan-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
-.plan-list li { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); gap: 0.7rem; font-size: 0.88rem; color: var(--on-variant); min-width: 0; }
+/* beats are speech bubbles — a nested surface sits one tonal step above its card */
+.script-sheet { display: grid; gap: 10px; margin-bottom: 1.6rem; font-family: var(--sans); }
+.script-sheet p { margin: 0; padding: 12px 16px; border-radius: 14px; border-top-left-radius: 4px; background: var(--container-hi); color: var(--on-surface); }
+.plan-title { font-size: 0.95rem; font-weight: 500; margin: 24px 0 8px; color: var(--on-surface); }
+.plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.plan-list li { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: start; font-size: 0.925rem; color: var(--on-variant); min-width: 0; }
 .plan-list li p { margin: 0; }
-.plan-list time { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); padding-top: 0.1rem; }
+.plan-list time { justify-self: start; padding: 2px 10px; border-radius: 8px; background: var(--tertiary-container); color: var(--on-tertiary-container); font-family: var(--mono); font-size: 0.78rem; font-weight: 500; }
 
-/* code drawer */
-.code-card { margin-top: 2rem; min-width: 0; }
+/* code drawer (mock §9): 64px summary, 180° chevron, tonal Copy all,
+   bordered per-language blocks with head strips, theme-aware pre */
+.code-card { margin-top: 24px; padding: 0; overflow: hidden; min-width: 0; }
 .code-card summary {
   cursor: pointer; list-style: none; user-select: none;
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 24px; min-height: 64px;
+  transition: background 0.15s ease;
 }
 .code-card summary::-webkit-details-marker { display: none; }
+.code-card summary:hover { background: color-mix(in srgb, var(--on-surface) 5%, transparent); }
 .code-card summary .title-group { display: flex; align-items: center; gap: 0.65rem; }
 .code-card summary .title-group svg { width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; }
 .code-card summary h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
 .code-card summary .summary-right { display: flex; align-items: center; gap: 0.9rem; flex-shrink: 0; }
-.code-card summary .code-hint { font-family: var(--mono); font-size: 0.74rem; color: var(--on-variant); white-space: nowrap; }
-.code-card summary .chevron { width: 14px; height: 14px; color: var(--on-variant); transition: transform 0.15s ease; flex-shrink: 0; }
-.code-card[open] summary .chevron { transform: rotate(90deg); }
-.code-card[open] summary { margin-bottom: 1.2rem; }
-.code-tabs-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
-.code-note { margin: 0; font-size: 0.85rem; color: var(--on-variant); max-width: 34rem; }
-.code-lang-block { margin-bottom: 1.3rem; }
-.code-lang-block:last-child { margin-bottom: 0; }
-.code-lang-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.lang-pill {
-  font-family: var(--mono); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
-  padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--container); color: var(--on-variant); border: 1px solid var(--outline-var);
-}
+.code-card summary .code-hint { font-family: var(--mono); font-size: 0.85rem; color: var(--on-variant); white-space: nowrap; }
+.code-card summary .chevron { width: 24px; height: 24px; color: var(--on-variant); transition: transform 0.2s ease; flex-shrink: 0; }
+.code-card[open] summary .chevron { transform: rotate(180deg); }
+.code-body { padding: 0 24px 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.code-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.code-note { margin: 0; font-size: 0.9rem; color: var(--on-variant); max-width: 34rem; }
+.lang { min-width: 0; border: 1px solid var(--outline-var); border-radius: 14px; overflow: hidden; }
+.lang-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 6px 14px; background: var(--container-hi); }
+.lang-pill { font-family: var(--mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; color: var(--primary); }
 .code-block-wrap { position: relative; min-width: 0; }
+/* the mock's theme-aware code: light ground in light theme, dark in dark */
 .code-block-wrap pre {
-  background: #0c110e; color: #d8e2dc; border-radius: 10px; padding: 1.1rem 1.2rem;
-  overflow: auto; font-family: var(--mono); font-size: 0.78rem; line-height: 1.6;
-  margin: 0; max-height: 320px; min-width: 0;
+  margin: 0; padding: 14px 16px; min-width: 0; max-height: 320px; overflow: auto;
+  background: var(--surface); color: var(--on-surface);
+  font-family: var(--mono); font-size: 0.8rem; line-height: 1.6; tab-size: 2;
 }
 
 /* ── custom scrollbars — slim, themed, consistent everywhere ────────── */
@@ -584,10 +591,21 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 /* Chrome draws arrow buttons on custom scrollbars (a ‹ › pair under every wide
    equation) unless they are explicitly removed */
 *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
-/* dark code blocks keep the same look but with their own ink */
-.code-block-wrap pre::-webkit-scrollbar-thumb { background: rgba(216,226,220,0.28); }
-.code-block-wrap pre::-webkit-scrollbar-thumb:hover { background: rgba(216,226,220,0.45); }
-.code-block-wrap pre { scrollbar-width: thin; scrollbar-color: rgba(216,226,220,0.28) transparent; }
+/* dark (or light) code scrolls with the page's own ink — the generic
+   scrollbar rules above cover it now that pre follows the theme */
+
+/* one shared snackbar (mock §11): copy confirmations, later resume */
+#snack {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 120px);
+  display: flex; align-items: center; max-width: calc(100vw - 32px);
+  background: var(--on-surface); color: var(--bg);
+  padding: 14px 20px; border-radius: 8px; box-shadow: var(--e2);
+  font-size: 0.9rem; transition: transform 0.25s ease; z-index: 100; pointer-events: none;
+}
+#snack.show { transform: translate(-50%, 0); pointer-events: auto; }
+.snack-act { margin-left: 20px; background: none; border: 0; padding: 6px 8px; font-family: var(--sans); font-size: 0.9rem; font-weight: 500; color: var(--primary-container); cursor: pointer; border-radius: 8px; white-space: nowrap; }
+@media (max-width: 719px) { #snack { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); } }
 
 /* up next */
 .zone-upnext { padding: 3.5rem 0 4.5rem; }
@@ -635,16 +653,18 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 
 /* ── controls + progress: built inside .stage-shell (see above) ── */
 
-/* generic copy button (mock .copy-btn) — prompt drawer + page actions */
+/* copy buttons — the mock's outlined variant (36px, primary ink) with the
+   label-swap feedback pattern */
 .copy-btn {
-  display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--sans); font-size: 0.8rem; font-weight: 500;
-  border: 1px solid var(--outline-var); background: var(--container); color: var(--on-variant);
-  border-radius: 7px; padding: 0.4rem 0.7rem; cursor: pointer; transition: all 0.15s ease;
+  display: inline-flex; align-items: center; gap: 0.4rem; height: 36px;
+  font-family: var(--sans); font-size: 0.8rem; font-weight: 500;
+  border: 1px solid var(--outline); background: transparent; color: var(--primary);
+  border-radius: 999px; padding: 0 14px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.copy-btn:hover { color: var(--on-surface); border-color: var(--accent); }
+.copy-btn:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
 .copy-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-.copy-btn.copied { color: var(--accent); border-color: var(--accent); }
-[data-theme="dark"] .copy-btn.copied { color: var(--accent); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
 .copy-btn .lbl-copied { display: none; }
 .copy-btn.copied .lbl-default { display: none; }
 .copy-btn.copied .lbl-copied { display: inline; }
@@ -680,13 +700,16 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
   .upnext-arrow svg { width: 13px; height: 13px; }
   .upnext-meta .u-title { font-size: 0.95rem; }
   .script-head h3 { font-size: 1.05rem; }
-  .script-sheet { padding: 1rem 1.1rem; }
-  .plan-list li { grid-template-columns: 3.4rem 1fr; font-size: 0.83rem; }
-  .code-block-wrap pre { font-size: 0.7rem; padding: 0.9rem 1rem; }
+  .plan-list li { font-size: 0.83rem; }
   /* our answer string carries the fraction as well as the decimal, so it needs
      one step down on phones (the mock's answer is a bare decimal) */
   .answer-card .value { font-size: 1.5rem; }
-  .code-card summary .code-hint { display: none; }
   .code-card summary h3 { font-size: 1rem; }
   .code-card { margin-top: 1.5rem; }
+}
+
+/* code drawer on phones (the mock's ≤719 tier): hint gone, tighter inline padding */
+@media (max-width: 719px) {
+  .code-card .code-hint { display: none; }
+  .code-card summary, .code-body { padding-inline: 16px; }
 }

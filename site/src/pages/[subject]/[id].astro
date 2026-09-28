@@ -62,12 +62,21 @@ const steps = (readSibling('solution.md').split(/^## /m).filter((s) => s.trim())
   };
 });
 
-/* "## 0–4s · scene: intro" → { time, html } beats for script + visual plan */
+/* "## 0–4s · scene: intro" → { time, scene, html } beats: the prose becomes a
+   script bubble, the scene marker (prose as fallback) the plan row — the same
+   content never prints twice */
 const beats = (readSibling('script.md').split(/^## /m).filter((s) => s.trim())).map((part) => {
   const nl = part.indexOf('\n');
   const head = part.slice(0, nl).trim();
+  const body = part.slice(nl + 1).trim();
   const tm = head.match(/^([\d.]+(?:[–-][\d.]+)?)s/);
-  return { time: tm ? `${tm[1]}s` : head, html: marked.parse(part.slice(nl + 1).trim()) };
+  const sc = head.match(/·\s*scene:\s*(.+)$/);
+  const html = marked.parse(body);
+  return {
+    time: tm ? `${tm[1]}s` : head,
+    scene: sc ? sc[1].trim() : html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+    html,
+  };
 });
 
 /* Code drawer: the same compiled clip the player renders. The storyboard
@@ -193,6 +202,9 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
               <svg class="yt" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
               <h3>Short-form script</h3>
             </div>
+            <button class="copy-btn" id="btn-copy-script" type="button" title="Copy the narration script">
+              <span class="lbl-default">Copy script</span><span class="lbl-copied">Copied!</span>
+            </button>
           </div>
           <div class="script-sheet">
             {beats.map((b) => <Fragment set:html={b.html} />)}
@@ -202,7 +214,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
             {beats.map((b) => (
               <li>
                 <time>{b.time}</time>
-                <Fragment set:html={b.html} />
+                <span>{b.scene}</span>
               </li>
             ))}
           </ul>
@@ -218,31 +230,49 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
             </span>
             <span class="summary-right">
               <span class="code-hint">HTML · CSS · JS — copy &amp; drop in</span>
-              <svg class="chevron" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
             </span>
           </summary>
-          <div class="code-tabs-head">
-            <p class="code-note">Self-contained — compiled from this question's storyboard; paste the HTML, CSS and JS into any page and the player works as-is.</p>
-          </div>
-          {clip && [
-            <div class="code-lang-block">
-              <div class="code-lang-head"><span class="lang-pill">HTML</span></div>
+          <div class="code-body">
+            <div class="code-top">
+              <p class="code-note">Self-contained — compiled from this question's storyboard; paste the HTML, CSS and JS into any page and the player works as-is.</p>
+              <button class="btn tonal" id="btn-copy-all" type="button" title="Copy all three blocks as fenced code">
+                <span class="lbl-default">Copy all</span><span class="lbl-copied">Copied!</span>
+              </button>
+            </div>
+            <div class="lang">
+              <div class="lang-head">
+                <span class="lang-pill">HTML</span>
+                <button class="copy-btn" type="button" data-copy-lang="html" title="Copy the HTML block">
+                  <span class="lbl-default">Copy</span><span class="lbl-copied">Copied!</span>
+                </button>
+              </div>
               <div class="code-block-wrap"><pre><code>{`<!--
   Requires KaTeX for the math rendering. Load once, before this markup:
     https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css   (stylesheet)
     https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js
     https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js
 -->\n${clip.html}`}</code></pre></div>
-            </div>,
-            <div class="code-lang-block">
-              <div class="code-lang-head"><span class="lang-pill">CSS</span></div>
+            </div>
+            <div class="lang">
+              <div class="lang-head">
+                <span class="lang-pill">CSS</span>
+                <button class="copy-btn" type="button" data-copy-lang="css" title="Copy the CSS block">
+                  <span class="lbl-default">Copy</span><span class="lbl-copied">Copied!</span>
+                </button>
+              </div>
               <div class="code-block-wrap"><pre><code>{clip.css}</code></pre></div>
-            </div>,
-            <div class="code-lang-block">
-              <div class="code-lang-head"><span class="lang-pill">JS</span></div>
+            </div>
+            <div class="lang">
+              <div class="lang-head">
+                <span class="lang-pill">JS</span>
+                <button class="copy-btn" type="button" data-copy-lang="js" title="Copy the JS block">
+                  <span class="lbl-default">Copy</span><span class="lbl-copied">Copied!</span>
+                </button>
+              </div>
               <div class="code-block-wrap"><pre><code>{clip.js}</code></pre></div>
-            </div>,
-          ]}
+            </div>
+          </div>
         </details>
       )}
     </div>
@@ -403,4 +433,52 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
     (window as any).walkReset = () => { n = 1; render(false); };
     render(false);
   })();
+
+  /* Copy actions — label swap + the shared snackbar. The clipboard receives
+     exactly what is displayed, so a paste matches what was on screen; where the
+     async clipboard API is unavailable (non-secure context / automation) fall
+     back to a hidden textarea + execCommand. */
+  function copyText(text: string, btn: HTMLElement, okMs = 1600) {
+    const done = () => {
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), okMs);
+      (window as any).__snack?.('Copied to clipboard');
+    };
+    const fallback = () => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch { /* no clipboard here */ }
+      ta.remove();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else fallback();
+  }
+
+  const copyScriptBtn = document.getElementById('btn-copy-script');
+  copyScriptBtn?.addEventListener('click', () => {
+    const text = [...document.querySelectorAll('.script-sheet p')]
+      .map((p) => p.textContent?.trim() ?? '')
+      .filter(Boolean)
+      .join('\n\n');
+    copyText(text, copyScriptBtn);
+  });
+
+  document.getElementById('btn-copy-all')?.addEventListener('click', function (this: HTMLElement) {
+    const text = ['html', 'css', 'js'].map((lang) => {
+      const code = document.querySelector(`[data-copy-lang="${lang}"]`)?.closest('.lang')?.querySelector('code');
+      return code ? `\`\`\`${lang}\n${code.textContent?.trim() ?? ''}\n\`\`\`` : '';
+    }).filter(Boolean).join('\n\n');
+    copyText(text, this);
+  });
+
+  for (const btn of document.querySelectorAll<HTMLElement>('[data-copy-lang]')) {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('.lang')?.querySelector('code');
+      copyText(code?.textContent?.trim() ?? '', btn);
+    });
+  }
 </script>

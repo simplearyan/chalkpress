@@ -83,6 +83,8 @@ const ogUrl = new URL(base + ogImage, site).href;
 </head>
 <body>
   <slot />
+  <!-- one shared snackbar: copy confirmations now, the resume action in phase 4 -->
+  <div id="snack" role="status" aria-live="polite"></div>
   <script>
     // smooth scrolling for in-page anchors only (stepper links etc.). CSS
     // scroll-behavior stays 'auto' so the browser's scroll RESTORATION on
@@ -232,6 +234,29 @@ const ogUrl = new URL(base + ogImage, site).href;
       acquire();
       requestAnimationFrame(tick);
     })();
+  </script>
+  <script>
+    /* One shared snackbar, exposed on window: Player's inline classic script
+       cannot import modules, and every handler that calls it runs long after
+       this module has executed. Optional action button = escape hatch (phase 4
+       wires "Start over" to it). */
+    const snack = document.getElementById('snack') as HTMLElement;
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    (window as unknown as { __snack: (msg: string, action?: string, fn?: () => void, ms?: number) => void })
+      .__snack = (msg, action, fn, ms) => {
+        snack.textContent = msg;
+        if (action) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'snack-act';
+          b.textContent = action;
+          b.addEventListener('click', () => { fn?.(); snack.classList.remove('show'); });
+          snack.appendChild(b);
+        }
+        snack.classList.add('show');
+        if (hideTimer) clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => snack.classList.remove('show'), ms || 2000);
+      };
   </script>
 </body>
 </html>
