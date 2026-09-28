@@ -17,10 +17,8 @@ $$A + B = (1 + 2,\ 2 + 3) = (3, 5)$$
 
 $$A - B = (1 - 2,\ 2 - 3) = (-1, -1)$$
 
-## 5. Answer
-
-All four computations check out:
+That completes the set:
 
 $$2A = (2,4), \quad 3B = (6,9), \quad A + B = (3,5), \quad A - B = (-1,-1)$$
 
-✓ Matches **Option C** — all four claims hold.
+All four claims hold — option C.

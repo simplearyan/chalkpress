@@ -16,8 +16,4 @@ Multiply the favorable combinations and divide by the total:
 
 $$\text{Probability} = \frac{\binom{4}{2} \times \binom{4}{1} \times \binom{44}{1}}{\binom{52}{4}} = \frac{6 \times 4 \times 44}{270{,}725} = \frac{1{,}056}{270{,}725} \approx 0.0039$$
 
-## 4. Answer
-
-$$P(2\text{ Queens}, 1\text{ King}) = \frac{1{,}056}{270{,}725} \approx 0.0039$$
-
-✓ Matches **Option A**.
+So $P(2\text{ Queens}, 1\text{ King}) \approx 0.0039$ — option A.
