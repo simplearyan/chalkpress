@@ -858,18 +858,33 @@ that moment answered with the first one and the pill visibly flipped — the sam
 styles, which is why it read as one bug. The head boot now sets `data-tab-init` on `<html>`: an
 explicit `#part-` hash wins, otherwise the section this page last ended on (`hic_tab:<path>`, the same
 key the spy writes), defaulting to `solve`. The stylesheet paints the matching pill from that attribute,
-and the spy adopts it as its starting value instead of deriving one. Because a remembered section other
-than the first means the page came back scrolled, the boot also adds `.scrolled` in that case, so the
+and the spy adopts it as its starting value instead of deriving one. Landing on a section other than the
+first — by link or by memory — means the page opens scrolled, so the boot adds `.scrolled` too, and the
 bar's hairline belongs from the first frame. This is what the user's "use local storage" intuition was
 reaching for: the bundle and HTTP cache already handle the assets, so the persistence that actually
 mattered was the *reading position*.
+
+*The fragment-jump trap, found in verification after the first pass.* The spy used to run immediately
+when the URL carried a `#part-` hash, on the reasoning that the target was already chosen. But the
+browser applies the fragment jump **after `load` and without dispatching a scroll event** to a listener
+registered during parsing, so that immediate call read the top of the page, painted `solve`, wrote
+`solve` to storage — and nothing ever corrected it, because no later event arrived. Opening
+`…/pq-001/#part-produce` showed the produce section but the `solve` pill. The hash branch is gone: the
+spy always waits for `load` plus one frame (the same frame that makes the restored position real),
+which is why the boot's seed has to be right on its own rather than corrected a moment later. A second
+`load` + frame check confirms the hairline when the page really is scrolled, and it is **additive only**
+so it can never undo a correct seed.
 
 **11.3 Verification.** Structural, because a swap that no longer exists cannot be timed: the built HTML
 contains the KaTeX markup for every display (not `$`), the live DOM has no stray `$` in prose, options,
 givens or the goal, and the head lists zero jsdelivr references. For the seed, strip every `.active`
 class and confirm the pill still tracks `data-tab-init` across two separate document loads with opposite
 values (`produce` and `solve`) — proving the attribute paints it, not the spy — plus `scrolled` seeded
-true only for the non-first section.
+true only for the non-first section. Then the three entry paths end to end: `#part-produce` (produce
+pilled, hairline on, nothing stored, `produceTop` = 72 = the scroll-padding), a restored scroll with the
+stored key (produce pilled and hairline on at 1160px down), and a fresh visit at the top (solve pilled,
+no hairline). `preview_evaluate`'s rAF starvation means the post-load reconcile can't be *observed* here —
+that is why it is additive-only and why the boot decides the common case deterministically.
 
 **Done when:** a refresh of `/probability/pq-001/` paints the final formulas and the correct section on
 frame one, in both themes, at both nav tiers; the player, its payload, and the copy actions are unchanged;

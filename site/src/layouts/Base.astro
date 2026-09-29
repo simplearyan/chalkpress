@@ -77,15 +77,13 @@ const ogUrl = new URL(base + ogImage, site).href;
            problem" and then flip to "Build the short". An explicit #part- hash
            wins; otherwise, whatever section this page last ended on. */
         var seed = (location.hash || '').replace(/^#part-/, '');
-        if (!seed) {
-          var last = localStorage.getItem('hic_tab:' + location.pathname);
-          if (last) {
-            seed = last;
-            /* a remembered section other than the first means the page came
-               back scrolled, so the bar's hairline belongs from the start */
-            if (last !== 'solve') document.documentElement.classList.add('scrolled');
-          }
-        }
+        if (!seed) seed = localStorage.getItem('hic_tab:' + location.pathname) || '';
+        /* Landing on a section other than the first — by #part- link or by
+           memory — means the page opens scrolled, and the browser applies that
+           scroll AFTER load, so no scroll event reports it. Seed the bar's
+           hairline now. The post-load check in the body can only confirm it,
+           never clear it, so a wrong guess lasts until the first scroll. */
+        if (seed && seed !== 'solve') document.documentElement.classList.add('scrolled');
         document.documentElement.setAttribute('data-tab-init', seed || 'solve');
       } catch (e) {}
     })();
@@ -149,6 +147,14 @@ const ogUrl = new URL(base + ogImage, site).href;
           ticking = false;
         });
       }, { passive: true });
+      /* A restored scroll position (or a #part- fragment jump) is applied
+         without a scroll event reaching this listener — and, measurably, after
+         `load` — so the hairline would stay off on a page that opens 1000px
+         down. Additive only: this can confirm the head boot's seed, never undo
+         it, in case the restoration lands after this frame. */
+      window.addEventListener('load', () => requestAnimationFrame(() => {
+        if (window.scrollY > 4) root.classList.add('scrolled');
+      }), { once: true });
       // leaving phone width: the bar is always visible again, so drop the
       // scroll-hidden state instead of letting it linger into the layout
       const wide = window.matchMedia('(min-width: 720px)');
@@ -189,14 +195,14 @@ const ogUrl = new URL(base + ogImage, site).href;
         try { localStorage.setItem(KEY, cur); } catch (e) {}
       };
       paint();
-      if (location.hash) {
-        spy();
-      } else {
-        /* Wait for load: that is when the restored scroll position is real. A
-           spy call now would read the top of the page and undo the seed. Any
-           scroll in the meantime still reports through the listener below. */
-        window.addEventListener('load', () => requestAnimationFrame(spy), { once: true });
-      }
+      /* Wait for load: that is when both the restored scroll position and any
+         #part- fragment jump are real. A spy call before that reads the top of
+         the page and would undo the seed — with a fragment URL the browser
+         applies the jump without dispatching a scroll event to a listener
+         registered here, so an earlier check would never be corrected. Until
+         then the CSS-painted seed stands, and any real scroll still reports
+         through the listener below. */
+      window.addEventListener('load', () => requestAnimationFrame(spy), { once: true });
       window.addEventListener('scroll', spy, { passive: true });
       window.addEventListener('resize', spy);
     })();
