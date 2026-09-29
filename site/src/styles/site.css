@@ -584,8 +584,6 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 
 /* script head, chat-bubble beats and the visual plan (mock §8) */
 .script-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
-.script-head .title-group { display: flex; align-items: center; gap: 0.6rem; }
-.script-head svg.yt { width: 18px; height: 18px; color: var(--error); flex-shrink: 0; }
 .script-head h3 { font-size: 1.15rem; font-weight: 600; }
 /* beats are speech bubbles — a nested surface sits one tonal step above its card */
 .script-sheet { display: grid; gap: 10px; margin-bottom: 1.6rem; font-family: var(--sans); }
@@ -761,6 +759,10 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
   .code-card .code-hint { display: none; }
   .code-card summary, .code-body { padding-inline: 16px; }
   .upnext-thumb { width: 80px; height: 80px; }
+  /* on a phone the two part markers cost more than they say: the left rule just
+     eats width, and the heading rule repeats what the PART kicker already does */
+  .try-card { border-left: 0; }
+  .part-head h2::after { display: none; }
 }
 /* declared after the 719 tier so the wrap rule's smaller thumb wins at 380 */
 @media (max-width: 380px) { .upnext-thumb { width: 64px; height: 64px; } }

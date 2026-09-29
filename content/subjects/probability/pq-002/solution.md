@@ -19,6 +19,9 @@ $$A - B = (1 - 2,\ 2 - 3) = (-1, -1)$$
 
 That completes the set:
 
-$$2A = (2,4), \quad 3B = (6,9), \quad A + B = (3,5), \quad A - B = (-1,-1)$$
+$$\begin{aligned}
+&2A = (2,4), \quad 3B = (6,9), \newline
+&A + B = (3,5), \quad A - B = (-1,-1)
+\end{aligned}$$
 
 All four claims hold — option C.

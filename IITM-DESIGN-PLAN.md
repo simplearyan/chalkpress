@@ -26,6 +26,7 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **5 library + portal** | **done** — tonal shelf cards with the M3 state layer, poster tones as classes, dashed placeholder tile, M3 search bar (pill + leading icon), assist chips on `--tertiary-container`, empty state on the `hidden` attribute; every inline `style=` and the last per-page `<style>` block removed |
 | **6 a11y · motion · focus** | **done** — focus-visible everywhere (one 3px primary ring, links/buttons/range/tabs all verified), `aria-live` on quiz feedback + walkthrough count + snackbar, `aria-keyshortcuts` on the player, `aria-pressed` on the aspect toggle, `aria-current` driven by the scroll-spy, 44px hit targets on compact controls via an `::after` box, skip link with focus transfer, and reduced-motion honoured in both CSS and the anchor-scroll JS |
 | 7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** §9 |
+| **8 script bubbles · math breaks · phone trims** | **done** — 8a the script head is logo-free again and `beats` now carry `bubbles` (one per paragraph), so 8 quoted narration bubbles sit over 3 plan rows on both questions and `#btn-copy-script` still pastes all 8; 8b both long displays are `aligned` over two rows (`\newline`, which `marked` passes through untouched) and no math surface overflows its box at 900+ — the `overflow-x: auto` net and the focusable-probe stay; 8c at ≤719px the try card loses its gold left rule and both part heads lose the `h2::after` marker |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
 the mock's exact values, what the live build measures today, the required change, the
@@ -344,7 +345,8 @@ clipboard" and "Picked up where you left off → Start over".
 - **Script sheet**: each beat is a `--container` bubble, radius 14 with a 4px top-left tail,
   `12px 16px`. Site renders the same beats italic serif inside one accent-ruled block —
   switch to bubbles (and consider a "Copy script" outlined button in the head, which the
-  mock has and the site does not).
+  mock has and the site does not). **One bubble per paragraph, not per beat** — the mock keeps 3
+  plan rows against 8 narration bubbles, so the two are decoupled (§11 Phase 8a).
 - **Visual plan**: mono `time` rendered as a `--tertiary-container` chip (radius 8) in a
   `72px 1fr` grid. Site currently shows times as plain accent mono text.
 - **Code card**: `<details>` with 64px `min-height` summary, state-layer hover, 24px chevron
@@ -505,6 +507,73 @@ inline style attributes and no per-page `<style>` blocks except intentional loca
 both themes; no-horizontal-scroll check at 320/360; theme-flash check on first paint;
 scroll-restoration check (hash + no hash); keyboard walkthrough of every interactive
 element. Record results in the commit body.
+
+### Phase 8 — Script bubbles, math line-breaking, small-screen trims
+
+Three narrow refinements the port still owes the mock. Each is independently verifiable.
+
+**8a — Script sheet: drop the YouTube glyph, split narration into more bubbles.**
+
+- The site's script head carries `<svg class="yt">` (`.script-head svg.yt`, `--error` ink) that
+the mock does not have — the mock's `.script-head` is just `<h3>Short-form script</h3>` plus the
+copy button. Delete the svg and the `svg.yt` rule; keep the `.title-group` wrapper (the code
+drawer's summary shares that class with a different glyph) or collapse it to a bare `<h3>`.
+Only `svg.yt` needs to go.
+- **Bubbles are not beats.** Today `beats` drives the bubbles *and* the plan rows, so 3 `## `
+blocks = 3 bubbles. The mock keeps **3 plan rows but 8 narration bubbles**. Fix the model, not
+the copy: a beat body already allows several paragraphs, so split the body on blank lines and
+render one `<p>` per paragraph. `## 0–4s · scene: intro` stays the plan row *and* the timing
+window, the paragraphs become the bubbles, and `#btn-copy-script` (which already joins
+`.script-sheet p`) needs no change. Note the knock-on: `templates/script.md`'s "one beat = one
+continuous utterance" rule gets looser — a beat may now split into several spoken sentences
+inside its own window — so the template's rules need a sentence about that.
+Render `{beats.flatMap((b) => b.bubbles.map((t) => <p>{t}</p>))}` with `bubbles = body.split(/\n{2,}/)`.
+- **Quotes.** The mock wraps every bubble in `"`. Put them in the content as typographic `“ ”` —
+they are the deliverable text (the copy button pastes them into a teleprompter), so they belong
+to the script, not to the template.
+- Content: rewrite `content/subjects/probability/pq-001/script.md` as the mock's 8 lines under
+the existing 3 headings (2 / 3 / 3 split), keeping math spoken verbally (`pq-002`'s mock also
+carries 8). Update `templates/script.md` to say a beat may hold several paragraphs, one bubble
+each.
+
+**8b — Long display math breaks into two lines instead of scrolling.**
+
+`solution.md` step 3 is one ~95-character `$$…$$` line; `.prose p:has(.katex-display)` is
+`overflow-x: auto`, so at desktop widths it renders as a single line with a scrollbar (and
+`[id].astro`'s overflow probe marks it focusable). The mock breaks it after the second fraction:
+
+```latex
+$$\begin{aligned}
+\text{Probability} &= \frac{\binom{4}{2}\binom{4}{1}\binom{44}{1}}{\binom{52}{4}}
+                      = \frac{6 \times 4 \times 44}{270{,}725} \\[6pt]
+                   &= \frac{1{,}056}{270{,}725} \approx 0.0039
+\end{aligned}$$
+```
+
+Watch the escaping: this runs through `marked.parse`, which collapses `\\` to `\`, so the source
+needs `\\\\` — verify the emitted markup in `dist/probability/pq-001/index.html`. If that proves
+brittle, fall back to two `$$…$$` blocks plus one rule that fuses adjacent display paragraphs
+into a single box (drop the top radius and margin on
+`p:has(.katex-display) + p:has(.katex-display)`). Keep `overflow-x: auto` as the safety net: it
+must still catch genuinely too-wide math, and the focusable-region probe self-corrects because it
+measures real overflow. `pq-002`'s closing line
+(`2A = (2,4), \quad 3B = (6,9), \quad A + B = (3,5), \quad A - B = (-1,-1)`) is the other
+candidate — break it at a `\quad`.
+
+**8c — Phones: drop the try-card marker and the part-head rule.**
+
+Both are unconditional today, so both are one-line additions to the existing
+`@media (max-width: 719px)` tier at the end of `site.css` (do not open a new block):
+
+- `.try-card { border-left: 0 }` — the gold `.try-badge` overline still marks the card.
+- `.part-head h2::after { display: none }` — one decoration, two colours (`--primary` on Part 1,
+  `--accent` on Part 2); hiding both keeps the two part heads symmetric.
+
+**Done when:** the script head carries no logo; the sheet shows 8 quoted bubbles over 3 plan rows
+on both questions; `#btn-copy-script` still pastes the whole sheet; no display formula scrolls
+horizontally at 1440/1024/900 while genuinely wide math still does and keeps its focus ring; and
+at 360/414/719 both part heads are rule-free and the try card is borderless — in both themes,
+with `npm run build` and `node tools/validate.mjs` green.
 
 ---
 

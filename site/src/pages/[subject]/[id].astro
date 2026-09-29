@@ -62,20 +62,23 @@ const steps = (readSibling('solution.md').split(/^## /m).filter((s) => s.trim())
   };
 });
 
-/* "## 0–4s · scene: intro" → { time, scene, html } beats: the prose becomes a
-   script bubble, the scene marker (prose as fallback) the plan row — the same
-   content never prints twice */
+/* "## 0–4s · scene: intro" → { time, scene, bubbles } beats. The heading is both
+   the timing window and the plan row; every paragraph in the body is one script
+   bubble (one spoken utterance). The two stay independent on purpose: the mock
+   keeps 3 plan rows against 8 narration bubbles, so the copy can be re-cut
+   without the visual plan having to move with it. */
 const beats = (readSibling('script.md').split(/^## /m).filter((s) => s.trim())).map((part) => {
   const nl = part.indexOf('\n');
   const head = part.slice(0, nl).trim();
   const body = part.slice(nl + 1).trim();
   const tm = head.match(/^([\d.]+(?:[–-][\d.]+)?)s/);
   const sc = head.match(/·\s*scene:\s*(.+)$/);
-  const html = marked.parse(body);
+  /* parseInline: the bubble <p> is ours, so the markdown must not bring its own */
+  const bubbles = body.split(/\n{2,}/).map((p) => marked.parseInline(p.trim())).filter(Boolean);
   return {
     time: tm ? `${tm[1]}s` : head,
-    scene: sc ? sc[1].trim() : html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
-    html,
+    scene: sc ? sc[1].trim() : bubbles.join(' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+    bubbles,
   };
 });
 
@@ -200,16 +203,13 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 
         <section class="card">
           <div class="script-head">
-            <div class="title-group">
-              <svg class="yt" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-              <h3>Short-form script</h3>
-            </div>
+            <h3>Short-form script</h3>
             <button class="copy-btn" id="btn-copy-script" type="button" title="Copy the narration script">
               <span class="lbl-default">Copy script</span><span class="lbl-copied">Copied!</span>
             </button>
           </div>
           <div class="script-sheet">
-            {beats.map((b) => <Fragment set:html={b.html} />)}
+            {beats.flatMap((b) => b.bubbles.map((bubble) => <p set:html={bubble} />))}
           </div>
           <div class="plan-title">Visual plan ({secs}s loop)</div>
           <ul class="plan-list">

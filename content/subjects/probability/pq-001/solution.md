@@ -14,6 +14,9 @@ $$\binom{52}{4} = \frac{52!}{4!(52-4)!} = 270{,}725$$
 
 Multiply the favorable combinations and divide by the total:
 
-$$\text{Probability} = \frac{\binom{4}{2} \times \binom{4}{1} \times \binom{44}{1}}{\binom{52}{4}} = \frac{6 \times 4 \times 44}{270{,}725} = \frac{1{,}056}{270{,}725} \approx 0.0039$$
+$$\begin{aligned}
+\text{Probability} &= \frac{\binom{4}{2} \times \binom{4}{1} \times \binom{44}{1}}{\binom{52}{4}} = \frac{6 \times 4 \times 44}{270{,}725} \newline
+&= \frac{1{,}056}{270{,}725} \approx 0.0039
+\end{aligned}$$
 
 So $P(2\text{ Queens}, 1\text{ King}) \approx 0.0039$ — option A.
