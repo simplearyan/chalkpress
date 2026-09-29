@@ -662,16 +662,29 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 /* dark (or light) code scrolls with the page's own ink — the generic
    scrollbar rules above cover it now that pre follows the theme */
 
-/* one shared snackbar (mock §11): copy confirmations, later resume */
+/* one shared snackbar (mock §11): copy confirmations, later resume.
+   Three things here are load-bearing (each one was a visible bug):
+   1. `visibility` is what hides it — NOT the transform. The phone offset is
+      bottom:100px, so the old 120px slide parked the toast only 20px below the
+      viewport edge and left its top ~54px drawn permanently over the bottom
+      nav. `visibility` is discrete, so it flips without needing an animation
+      frame; the slide is decoration on top of it.
+   2. The resting slide is 12px, not a full drop, for the same reason: it is the
+      position a toast would be *stuck* in, and it must not reach the nav.
+   3. `width: max-content`, NOT auto: `left: 50%` makes the shrink-to-fit
+      available space only HALF the viewport, so an auto-width toast wrapped to
+      three lines on a phone. max-width still caps it (`100%`, not `100vw` —
+      vw counts the scrollbar, so the toast sat ~5px off-centre on desktop). */
 #snack {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  transform: translate(-50%, 120px);
-  display: flex; align-items: center; max-width: calc(100vw - 32px);
+  transform: translate(-50%, 12px); visibility: hidden;
+  display: flex; align-items: center;
+  width: max-content; max-width: calc(100% - 32px);
   background: var(--on-surface); color: var(--bg);
   padding: 14px 20px; border-radius: 8px; box-shadow: var(--e2);
   font-size: 0.9rem; transition: transform 0.25s ease; z-index: 100; pointer-events: none;
 }
-#snack.show { transform: translate(-50%, 0); pointer-events: auto; }
+#snack.show { transform: translate(-50%, 0); visibility: visible; pointer-events: auto; }
 .snack-act { margin-left: 20px; background: none; border: 0; padding: 6px 8px; font-family: var(--sans); font-size: 0.9rem; font-weight: 500; color: var(--primary-container); cursor: pointer; border-radius: 8px; white-space: nowrap; }
 @media (max-width: 719px) { #snack { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); } }
 
