@@ -10,6 +10,7 @@ import AppBar from '../../components/AppBar.astro';
 import BottomNav from '../../components/BottomNav.astro';
 import Player from '../../components/Player.astro';
 import { posterFor } from '../../lib/posters.js';
+import { tex, texEscaped } from '../../lib/math.js';
 import { compileStoryboard } from '../../../../runtime/hic-storyboard.esm.js';
 
 export async function getStaticPaths() {
@@ -57,8 +58,9 @@ const steps = (readSibling('solution.md').split(/^## /m).filter((s) => s.trim())
   const m = head.match(/^(\d+)\.?\s*(.*)$/);
   return {
     n: m ? m[1] : String(i + 1),
-    title: m ? m[2] : head,
-    html: marked.parse(part.slice(nl + 1).trim()),
+    title: texEscaped(m ? m[2] : head),
+    /* tex(): math is rendered into the markup at build time (lib/math.js) */
+    html: tex(marked.parse(part.slice(nl + 1).trim())),
   };
 });
 
@@ -74,7 +76,7 @@ const beats = (readSibling('script.md').split(/^## /m).filter((s) => s.trim())).
   const tm = head.match(/^([\d.]+(?:[–-][\d.]+)?)s/);
   const sc = head.match(/·\s*scene:\s*(.+)$/);
   /* parseInline: the bubble <p> is ours, so the markdown must not bring its own */
-  const bubbles = body.split(/\n{2,}/).map((p) => marked.parseInline(p.trim())).filter(Boolean);
+  const bubbles = body.split(/\n{2,}/).map((p) => tex(marked.parseInline(p.trim()))).filter(Boolean);
   return {
     time: tm ? `${tm[1]}s` : head,
     scene: sc ? sc[1].trim() : bubbles.join(' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
@@ -100,8 +102,8 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
   <div class="wrap-top">
     <header class="page-head">
       <span class="chip">{chipText}</span>
-      <h1>{d.title}</h1>
-      <p>{d.source}</p>
+      <h1 set:html={texEscaped(d.title)} />
+      <p set:html={texEscaped(d.source)} />
     </header>
 
     <!-- ===================== PART 1: SOLVE ===================== -->
@@ -120,7 +122,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
             {d.options.map((o) => (
               <button type="button" class="try-option" data-correct={String(o.correct)}>
                 <span class="k" aria-hidden="true">{o.id}</span>
-                <span class="opt-body">{o.text}</span>
+                <span class="opt-body" set:html={texEscaped(o.text)} />
               </button>
             ))}
           </div>
@@ -134,13 +136,13 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
             <div class="tag">Given</div>
             <dl class="given-list">
               {d.given.map((g) => (
-                <div class="given-row"><dt>{g.label}</dt><dd>{g.value}</dd></div>
+                <div class="given-row"><dt>{g.label}</dt><dd set:html={texEscaped(g.value)} /></div>
               ))}
             </dl>
             {d.goal && (
               <div class="goal-box">
                 <div class="goal-label">Goal</div>
-                <div class="goal-value">{d.goal}</div>
+                <div class="goal-value" set:html={texEscaped(d.goal)} />
               </div>
             )}
           </aside>
@@ -153,7 +155,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
               <div class="step">
                 <div class="step-num">{s.n}</div>
                 <div>
-                  <h3>{s.title}</h3>
+                  <h3 set:html={s.title} />
                   <div class="prose" set:html={s.html} />
                 </div>
               </div>
@@ -180,7 +182,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           <div class="answer-card" id="answer">
             <div>
               <div class="label">Answer</div>
-              <div class="value">{d.answer}</div>
+              <div class="value" set:html={texEscaped(d.answer)} />
             </div>
             {correct && <span class="answer-badge">✓ Matches option {correct.id}</span>}
           </div>
@@ -293,8 +295,8 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           </div>
           <div class="upnext-meta">
             <div class="u-t">{next.data.topic.replace(/-/g, ' ')}</div>
-            <div class="u-title">{next.data.title}</div>
-            <div class="u-sub">{next.data.source}</div>
+            <div class="u-title" set:html={texEscaped(next.data.title)} />
+            <div class="u-sub" set:html={texEscaped(next.data.source)} />
           </div>
           <span class="upnext-arrow" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>

@@ -1,6 +1,12 @@
 ---
-// Base layout: fonts, theme boot, KaTeX auto-render for $...$ in markdown,
-// and the full SEO/social meta block (OG + Twitter + canonical + favicon).
+// Base layout: fonts, theme boot, and the full SEO/social meta block
+// (OG + Twitter + canonical + favicon).
+//
+// Math is NOT typeset here: it is rendered into the markup at build time
+// (lib/math.js), so there is nothing to swap in after paint. All this layout
+// needs is KaTeX's stylesheet, which ships from the bundle — the fonts are
+// emitted locally too, so a refresh makes no third-party request at all.
+import 'katex/dist/katex.min.css';
 import '../styles/site.css';
 interface Props {
   title: string;
@@ -64,6 +70,23 @@ const ogUrl = new URL(base + ogImage, site).href;
         document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
         var mc = document.querySelector('meta[name="theme-color"]');
         if (mc) mc.setAttribute('content', dark ? '#0f1512' : '#f5f4ee');
+
+        /* Seed the section highlight so the FIRST frame is already correct. The
+           browser restores the scroll position after this runs, so a script
+           that asked the DOM which section is on screen would paint "Work the
+           problem" and then flip to "Build the short". An explicit #part- hash
+           wins; otherwise, whatever section this page last ended on. */
+        var seed = (location.hash || '').replace(/^#part-/, '');
+        if (!seed) {
+          var last = localStorage.getItem('hic_tab:' + location.pathname);
+          if (last) {
+            seed = last;
+            /* a remembered section other than the first means the page came
+               back scrolled, so the bar's hairline belongs from the start */
+            if (last !== 'solve') document.documentElement.classList.add('scrolled');
+          }
+        }
+        document.documentElement.setAttribute('data-tab-init', seed || 'solve');
       } catch (e) {}
     })();
   </script>
@@ -77,9 +100,6 @@ const ogUrl = new URL(base + ogImage, site).href;
        Google Sans Flex for UI, Literata for display, Roboto Mono for data.
        Never write a family at a call site — use --sans / --serif / --mono. -->
   <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Google+Sans+Flex:wght@400;500;600&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 </head>
 <body>
   <slot />
@@ -136,18 +156,16 @@ const ogUrl = new URL(base + ogImage, site).href;
     })();
 
     (function () {
+      const root = document.documentElement;
       const links = [...document.querySelectorAll('[data-tab]')];
       const secs = [...document.querySelectorAll('[id^="part-"]')];
       if (!links.length || !secs.length) return;
+      const KEY = 'hic_tab:' + location.pathname;
       const idOf = (el) => el.id.replace(/^part-/, '');
-      const spy = () => {
-        const line = window.innerHeight * 0.4;
-        let cur = idOf(secs[0]);
-        for (const s of secs) if (s.getBoundingClientRect().top <= line) cur = idOf(s);
-        // the last section is short — reaching the bottom counts as being in it
-        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-          cur = idOf(secs[secs.length - 1]);
-        }
+      /* start from whatever the head boot seeded; that value is already painted
+         by CSS, so this only has to agree with it */
+      let cur = root.getAttribute('data-tab-init') || idOf(secs[0]);
+      const paint = () => {
         for (const l of links) {
           const on = l.dataset.tab === cur;
           l.classList.toggle('active', on);
@@ -156,9 +174,31 @@ const ogUrl = new URL(base + ogImage, site).href;
           else l.removeAttribute('aria-current');
         }
       };
+      const spy = () => {
+        const line = window.innerHeight * 0.4;
+        let next = idOf(secs[0]);
+        for (const s of secs) if (s.getBoundingClientRect().top <= line) next = idOf(s);
+        // the last section is short — reaching the bottom counts as being in it
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+          next = idOf(secs[secs.length - 1]);
+        }
+        if (next === cur) return;
+        cur = next;
+        paint();
+        /* remembered so the next visit can paint the right section immediately */
+        try { localStorage.setItem(KEY, cur); } catch (e) {}
+      };
+      paint();
+      if (location.hash) {
+        spy();
+      } else {
+        /* Wait for load: that is when the restored scroll position is real. A
+           spy call now would read the top of the page and undo the seed. Any
+           scroll in the meantime still reports through the listener below. */
+        window.addEventListener('load', () => requestAnimationFrame(spy), { once: true });
+      }
       window.addEventListener('scroll', spy, { passive: true });
       window.addEventListener('resize', spy);
-      spy();
     })();
 
     // toggle wiring only — data-theme was already set inline in <head> before
@@ -184,19 +224,6 @@ const ogUrl = new URL(base + ogImage, site).href;
         try { localStorage.setItem('hic_theme', next); } catch (e) {}
         setMeta(next);
       });
-    })();
-    // KaTeX typeset (waits for the deferred lib)
-    (function typeset() {
-      if (window.renderMathInElement) {
-        renderMathInElement(document.body, {
-          delimiters: [
-            { left: '$$', right: '$$', display: true },
-            { left: '$', right: '$', display: false },
-          ],
-          throwOnError: false,
-          ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-        });
-      } else { setTimeout(typeset, 40); }
     })();
 
     /* Refresh flicker, part 2: scroll restoration is instant now, but KaTeX

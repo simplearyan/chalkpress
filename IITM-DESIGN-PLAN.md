@@ -29,6 +29,7 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **8 script bubbles · math breaks · phone trims** | **done** — 8a the script head is logo-free again and `beats` now carry `bubbles` (one per paragraph), so 8 quoted narration bubbles sit over 3 plan rows on both questions and `#btn-copy-script` still pastes all 8; 8b both long displays are `aligned` over two rows (`\newline`, which `marked` passes through untouched) and no math surface overflows its box at 900+ — the `overflow-x: auto` net and the focusable-probe stay; 8c at ≤719px the try card loses its gold left rule and both part heads lose the `h2::after` marker |
 | 9 second reading style ("crisp") + header toggle | **planned** — §11 Phase 9, rationale in `IITM-READING-STYLES.md` |
 | **10 animation-preview spacing** | **done** — the ladder lands: the frame's air goes **12→22px** above and **12→24px** below on desktop (**12→20** / **12→22** on phones) — the port had taken the mock's stale `padding:8px 4px` where a browser renders the later `1rem 0.6rem` — plus 18px off the card's side edges in 16:9, card +44px desktop / +34px phones; measured at 320/360/414/719/900/1024/1440, both aspects, no overflow anywhere |
+| **11 refresh stability** | **done** — math is rendered at **build** time (`site/src/lib/math.js` over a real `katex@0.16.11` dependency, `tex()` for marked output and `texEscaped()` for frontmatter strings), so the formulas never paint raw and swap; the head makes no third-party request at all. The section highlight is **seeded pre-paint** (`data-tab-init` from the `#part-` hash else `hic_tab:<path>`, plus `.scrolled`), so the pill and the bottom-nav item are correct on frame one instead of being derived by the spy after the browser restores scroll |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
 the mock's exact values, what the live build measures today, the required change, the
@@ -817,6 +818,62 @@ once Phase 9 lands, where the crisp card is white with a hairline and the extra 
 scrolls horizontally at 320; the 16:9 state is still full-bleed within its column; the player and the
 aspect toggle still verify end-to-end; and the produce grid's two columns stay stable while the
 player changes height.
+
+---
+
+### Phase 11 — Refresh stability (build-time math, seeded section)
+
+Two things flickered on every refresh of a problem page, and they had two unrelated causes. Neither
+was a styling bug, so neither could be fixed in `site.css`.
+
+**11.1 The formulas — typeset at build time, not in the browser.** `Base.astro` used to pull KaTeX
+and its auto-render extension from jsDelivr (deferred) and typeset the page from a polling loop.
+Whatever the loop had not reached yet was painted as authored — raw `$\binom{52}{4}$` — and swapped
+for real markup a few hundred milliseconds later. That swap is the flicker, and no amount of
+`visibility: hidden` hides it without hiding the page.
+
+The fix is to move the render to build time: `site/src/lib/math.js` wraps `katex@0.16.11` (now a
+real dependency, not a CDN tag) and exports two entry points, because math reaches the page two
+ways — `tex()` for HTML that `marked` already produced (`solution.md` bodies, `script.md` beats),
+and `texEscaped()` for plain authored strings from frontmatter (option text, givens, the goal, the
+answer, the title and the up-next card), which Astro would otherwise escape for us. One `renderToString`
+call per match, with `htmlAndMathml` (KaTeX's default, and what the client-side auto-render produced) so
+the change is *when* the math is built, not *what* it is. `$…$` inside `<code>`/`<pre>` is left alone —
+that is code, not math. The result ships already typeset, so the final layout is known before the first
+paint: no CDN request, no polling, no reflow, and the restored scroll position lands on a laid-out page.
+The vendored KaTeX stylesheet and 59 font files are emitted from the bundle, and the head now makes
+**zero** third-party requests. The player keeps its own copy of the engine — `hic-frame` hoists tags
+from the animation payload it renders, and those must keep their own `$…$` delimiters because that
+text is copyable output.
+
+*Convention this creates:* every content field that is displayed must pass through `tex()` or
+`texEscaped()`. A field rendered raw would now show literal `$`. The problem page covers all of
+them; library and portal card titles are plain text by convention (they carried no math before
+either, though a global auto-render would have caught it if they had).
+
+**11.2 The section highlight — seeded before the first paint.** The app bar's segmented pill and the
+phone's bottom-nav item were assigned by the scroll-spy on `load`. But the browser restores the scroll
+position *after* the head scripts run, so a spy that asked the DOM "which section is on screen?" at
+that moment answered with the first one and the pill visibly flipped — the same flip on the two nav
+styles, which is why it read as one bug. The head boot now sets `data-tab-init` on `<html>`: an
+explicit `#part-` hash wins, otherwise the section this page last ended on (`hic_tab:<path>`, the same
+key the spy writes), defaulting to `solve`. The stylesheet paints the matching pill from that attribute,
+and the spy adopts it as its starting value instead of deriving one. Because a remembered section other
+than the first means the page came back scrolled, the boot also adds `.scrolled` in that case, so the
+bar's hairline belongs from the first frame. This is what the user's "use local storage" intuition was
+reaching for: the bundle and HTTP cache already handle the assets, so the persistence that actually
+mattered was the *reading position*.
+
+**11.3 Verification.** Structural, because a swap that no longer exists cannot be timed: the built HTML
+contains the KaTeX markup for every display (not `$`), the live DOM has no stray `$` in prose, options,
+givens or the goal, and the head lists zero jsdelivr references. For the seed, strip every `.active`
+class and confirm the pill still tracks `data-tab-init` across two separate document loads with opposite
+values (`produce` and `solve`) — proving the attribute paints it, not the spy — plus `scrolled` seeded
+true only for the non-first section.
+
+**Done when:** a refresh of `/probability/pq-001/` paints the final formulas and the correct section on
+frame one, in both themes, at both nav tiers; the player, its payload, and the copy actions are unchanged;
+`npm run build` and `node tools/validate.mjs` are green; and no third-party request is made on load.
 
 ---
 

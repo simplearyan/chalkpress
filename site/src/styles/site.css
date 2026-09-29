@@ -196,6 +196,11 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   }
   .tab:hover { background: color-mix(in srgb, var(--on-surface) 7%, transparent); }
   .tab.active, .tab.active:hover { background: var(--primary-container); color: var(--on-primary-container); }
+  /* Seeded active section, painted on the first frame from the attribute the
+     head boot sets (Base.astro). Without it the bar paints "Work the problem"
+     and then flips once the browser restores the scroll position. */
+  html[data-tab-init="solve"] .tab[data-tab="solve"],
+  html[data-tab-init="produce"] .tab[data-tab="produce"] { background: var(--primary-container); color: var(--on-primary-container); }
 }
 /* Tablet: where there is a back control, the hero already owns the title, so
    the bar drops it and the control becomes a labelled pill instead. Scoped to
@@ -229,6 +234,17 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   .bn-item.active { color: var(--on-surface); font-weight: 600; }
   .bn-item.active svg .fl { fill: currentColor; }
   .bn-item.active svg .cut { fill: var(--bg); stroke: var(--bg); }
+  /* seeded active section for the first frame — see the app-bar equivalent; the
+     phone nav has three items, so it seeds all three */
+  html[data-tab-init="solve"] .bn-item[data-tab="solve"],
+  html[data-tab-init="produce"] .bn-item[data-tab="produce"],
+  html[data-tab-init="next"] .bn-item[data-tab="next"] { color: var(--on-surface); font-weight: 600; }
+  html[data-tab-init="solve"] .bn-item[data-tab="solve"] svg .fl,
+  html[data-tab-init="produce"] .bn-item[data-tab="produce"] svg .fl,
+  html[data-tab-init="next"] .bn-item[data-tab="next"] svg .fl { fill: currentColor; }
+  html[data-tab-init="solve"] .bn-item[data-tab="solve"] svg .cut,
+  html[data-tab-init="produce"] .bn-item[data-tab="produce"] svg .cut,
+  html[data-tab-init="next"] .bn-item[data-tab="next"] svg .cut { fill: var(--bg); stroke: var(--bg); }
   /* clear the fixed bar — only on pages that actually have one */
   body:has(.bottom-nav) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 }
