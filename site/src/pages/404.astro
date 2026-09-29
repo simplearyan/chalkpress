@@ -1,0 +1,63 @@
+---
+// 404 — Astro emits this as dist/404.html, which is the file GitHub Pages
+// serves for any path it cannot resolve (for a project page, at
+// /<repo>/404.html). Two consequences shape this page:
+//   1. It renders at a URL of ANY depth, so every link is built with link()
+//      from lib/url.js — a relative href would resolve against the broken path
+//      and land right back here.
+//   2. Base.astro emits the same stylesheet, theme boot and vendor assets as
+//      every other page, all base-prefixed, so a lost visitor still gets the
+//      real site (and the working theme toggle) rather than a bare page.
+// The portals come from the content store, the same source [subject]/index.astro
+// builds its routes from, so every link here is guaranteed to exist.
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import AppBar from '../components/AppBar.astro';
+import { link } from '../lib/url.js';
+
+const all = await getCollection('subjects');
+const subjects = [...new Set(all.map((e) => e.data.subject))].sort();
+const labelOf = (s: string) => s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+---
+
+<Base
+  title="Page not found · IITM Shorts"
+  description="That page isn't here — every published problem lives in the Shorts library."
+  indexable={false}
+>
+  <AppBar title="Not found" back={{ href: link('/'), label: 'Library' }} />
+
+  <div class="wrap">
+    <header class="page-head">
+      <div class="kicker">404 · PAGE NOT FOUND</div>
+      <h1>That short isn't on the shelf</h1>
+      <p>
+        The link may be stale, or whatever it pointed at may have moved. Every published
+        problem — solution, script and animation code — is in the library.
+      </p>
+    </header>
+
+    <p class="not-found-actions">
+      <a class="btn filled" href={link('/')}>
+        Open the library
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" /></svg>
+      </a>
+    </p>
+
+    {subjects.length > 0 && (
+      <section>
+        <div class="shelf-title">Or jump to a subject</div>
+        <ul class="not-found-subjects">
+          {subjects.map((s) => (
+            <li>
+              <a class="not-found-subject" href={link(`/${s}/`)}>
+                <span>{labelOf(s)}</span>
+                <span class="nf-meta">{all.filter((e) => e.data.subject === s).length} in the solver</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</Base>

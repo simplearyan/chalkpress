@@ -140,6 +140,30 @@ h1, h2, h3, p, li, dd, figcaption, .prose, .value, .u-sub, .s-sub {
 .q-open:hover { text-decoration: underline; }
 .portal-empty { text-align: center; color: var(--on-variant); padding: 3rem 0; }
 
+/* ── 404 (dist/404.html — see pages/404.astro) ────────────────────────────
+   Same hero as the library, one way back, then the portals as a shelf of
+   tonal tiles. Surfaces and the hover overlay follow .short-card so a lost
+   visitor lands on something that still looks like the site. */
+.not-found-actions { margin: 0 0 3rem; }
+.not-found-subjects {
+  list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;
+}
+.not-found-subject {
+  position: relative; display: flex; flex-direction: column; gap: 0.35rem;
+  padding: 16px 18px; border-radius: 20px; background: var(--container);
+  text-decoration: none; color: inherit; font-weight: 600; overflow: hidden;
+}
+.not-found-subject::after {
+  content: ''; position: absolute; inset: 0; background: var(--on-surface);
+  opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+}
+.not-found-subject:hover::after, .not-found-subject:focus-visible::after { opacity: 0.06; }
+.nf-meta {
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--on-variant);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    APP SHELL — sticky top app bar + bottom navigation (M3)
    Mirrors mocks/problem-1-two-queens-one-king (16).html: a blurred bar that

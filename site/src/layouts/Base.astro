@@ -17,12 +17,16 @@ interface Props {
   /** Steps in the page's walkthrough, so the head boot can restore the reader's
    *  saved depth BEFORE the first paint. 0/absent = no walkthrough. */
   walkSteps?: number;
+  /** Off for pages that are a dead end, e.g. the 404 — Pages answers them with
+   *  a 404 status, so telling crawlers to index them is not honest. */
+  indexable?: boolean;
 }
 const {
   title,
   description = 'Short-form math explainers — every problem worked in full, then repackaged as a short with script, animation, and copyable code.',
   ogImage = '/og-default.png',
   walkSteps = 0,
+  indexable = true,
 } = Astro.props;
 
 /* Canonical + absolute OG URLs need the deploy origin. Astro.site is set in
@@ -42,16 +46,18 @@ const ogUrl = new URL(base + ogImage, site).href;
   <title>{title}</title>
   <meta name="description" content={description} />
 
-  <!-- canonical + robots -->
-  <link rel="canonical" href={canonical} />
-  <meta name="robots" content="index, follow" />
+  <!-- canonical + robots. A page that is not indexable asserts no URL at all:
+       Astro's own URL for the 404 route does not resolve to the file Pages
+       serves (/404.html), so a canonical here would be a lie. -->
+  {indexable && <link rel="canonical" href={canonical} />}
+  <meta name="robots" content={indexable ? 'index, follow' : 'noindex, follow'} />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="IITM Shorts" />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:url" content={canonical} />
+  {indexable && <meta property="og:url" content={canonical} />}
   <meta property="og:image" content={ogUrl} />
   <meta property="og:image:alt" content={`${title} — animation frame`} />
 
