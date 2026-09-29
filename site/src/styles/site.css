@@ -357,8 +357,13 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
   background: var(--container); border: 0; border-radius: 24px;
   padding: 8px 8px 16px; box-shadow: none;
 }
-.stage-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 8px 6px 12px; color: var(--on-variant); flex-wrap: wrap; }
-.stage-bar .label { font-family: var(--mono); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em; }
+/* One chrome row: label, frame control, product actions. It wraps rather than
+   scrolls, and because the trigger is on the RIGHT (justify-content: flex-end
+   plus an auto left margin on the label) the wrapped tail — the tool buttons on
+   a phone — stays right-aligned under the pill instead of orphaning left. */
+.stage-bar { display: flex; justify-content: flex-end; align-items: center; gap: 6px; padding: 8px 8px 6px 12px; color: var(--on-variant); flex-wrap: wrap; }
+.stage-bar .label { margin-right: auto; font-family: var(--mono); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em; }
+.stage-tools { display: flex; align-items: center; gap: 4px; }
 /* aspect pill: shows the storyboard's frame and lets you re-frame the preview */
 .btn-aspect {
   display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px;
@@ -370,11 +375,23 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .btn-aspect[aria-pressed="true"] { box-shadow: var(--e1); }
 .btn-aspect svg { width: 16px; height: 16px; }
 .stage-holder { display: flex; justify-content: center; padding: 16px 10px; }
+/* The portrait cap is a RASTER budget, not a taste: Player.astro rasterises
+   450x800, so everything up to 450px of display width is a downscale with zero
+   quality cost. 280px showed 62% of the pixels the frame already had (and on
+   retina was a 1.24x upscale); 340px is 0.76x. The landscape frame has no cap
+   to raise — its column is the constraint. */
 .stage-frame {
-  position: relative; display: flex; width: 100%; max-width: 280px;
+  position: relative; display: flex; width: 100%; max-width: 340px;
   border-radius: 14px; overflow: hidden; background: #0e1512;
 }
 .stage-frame[data-aspect="16:9"] { max-width: min(100%, 640px); }
+/* On phones and short windows the portrait frame is the tallest thing on the
+   card, and a 340x604 frame plus its chrome does not fit a 640px viewport — so
+   below the two-column breakpoint the HEIGHT budget wins and the width is
+   derived from it (declared second, so a browser without dvh keeps 340px). */
+@media (max-width: 899px) {
+  .stage-frame[data-aspect="9:16"] { max-width: min(340px, calc(min(62dvh, 604px) * 9 / 16)); }
+}
 .stage-frame #stage { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; }
 .stage-frame[data-aspect="16:9"] #stage { aspect-ratio: 16 / 9; }
 /* on-frame play affordance: the 64px target you actually aim at on touch */
@@ -593,23 +610,31 @@ html[data-walk] .walk-ctl[hidden] { display: flex; }
 /* Part 2 is not a band: the same page tone as Part 1, separated by rhythm only
    (its padding comes from the shared section rule above). */
 .produce-grid { display: grid; grid-template-columns: 1fr; gap: 2.25rem; }
-/* The preview holds a fixed-aspect frame, so its column is capped rather than
-   proportional — but a FLAT 400px cap made the ratio invert just above the
-   breakpoint: at 900px the tracks were 400 / 385, i.e. the narrow column was
-   the script, at ~38 characters a line. The 40% bound leaves 400px in place
-   from ~1075px up (the wide layout is untouched, and the 9:16 frame is capped
-   at 280px inside it anyway) and hands the shortfall to the script below that:
-   330 / 455 at 900px, ~46 characters, back inside the readable 45-75 band. */
-@media (min-width: 900px) { .produce-grid { grid-template-columns: minmax(320px, min(400px, 40%)) minmax(0, 1fr); gap: 2.5rem; align-items: start; } }
+/* The preview column holds a fixed-aspect frame, so its width is a RASTER
+   budget rather than a share of the row — but a FLAT cap made the ratio invert
+   just above the breakpoint: at 900px the tracks were 400 / 385, i.e. the narrow
+   column was the script, at ~38 characters a line. The column is now the room
+   the script can spare — `100% - 480px` is the 40px gap plus the ~45-character
+   floor the script has to keep — capped at the frame's own raster budget, 440px:
+   Player.astro rasterises 450x800, so a 440-wide column still only ever shows
+   340px of it, and 440 is what the chrome row wants. Resolves to 345 / 440 at
+   900px and sits at its cap from ~990px up (script 536px, ~55 characters). */
+@media (min-width: 900px) { .produce-grid { grid-template-columns: minmax(320px, min(440px, calc(100% - 480px))) minmax(0, 1fr); gap: 2.5rem; align-items: start; } }
 .produce-grid > * { min-width: 0; }
 
 /* progress: a native range input (keyboard + screen-reader seeking for free)
-   dressed as the mock's 4px track with a dot */
-.progress-track { position: relative; height: 4px; margin: 8px 12px 0; border-radius: 4px; background: var(--container-hi); }
-.progress-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; background: var(--accent); }
-.progress-track input[type="range"] { position: absolute; top: -20px; left: 0; width: 100%; height: 44px; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
-.progress-track input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; border: 0; }
-.progress-track input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; margin-top: -4px; border: 0; border-radius: 50%; background: var(--accent); }
+   dressed as the mock's track with a dot. The element keeps a 6px box and the
+   RAIL is the pseudo-element, so hovering can thicken it 4 -> 6 without moving
+   anything below it by a pixel. */
+.progress-track { position: relative; height: 6px; margin: 8px 12px 0; }
+.progress-track::before { content: ''; position: absolute; inset: 1px 0; border-radius: 4px; background: var(--container-hi); transition: inset 0.15s ease; }
+.progress-track:hover::before, .progress-track:focus-within::before { inset: 0; }
+.progress-fill { position: absolute; inset: 1px auto 1px 0; width: 0; border-radius: 4px; background: var(--accent); transition: inset 0.15s ease; }
+.progress-track:hover .progress-fill, .progress-track:focus-within .progress-fill { inset: 0 auto 0 0; }
+.progress-track input[type="range"] { position: absolute; top: -19px; left: 0; width: 100%; height: 44px; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.progress-track input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: transparent; border: 0; }
+.progress-track input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; margin-top: -3px; border: 0; border-radius: 50%; background: var(--accent); transition: width 0.15s ease, height 0.15s ease, margin-top 0.15s ease; }
+.progress-track:hover input[type="range"]::-webkit-slider-thumb, .progress-track:focus-within input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; margin-top: -4px; }
 .progress-track input[type="range"]::-moz-range-track { height: 4px; background: transparent; border: 0; }
 .progress-track input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--accent); }
 .ctl-row { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding: 0 4px; }
@@ -628,32 +653,27 @@ html[data-walk] .walk-ctl[hidden] { display: flex; }
 
 /* keyboard hint — fine pointers AND roomy widths only: hidden on touch and on
    small screens (the mock gates on hover/pointer; we add the width tier so the
-   phone-sized window of a desktop browser stays clean) */
-.kbd-hint { display: none; }
+   phone-sized window of a desktop browser stays clean). It rides the transport
+   row's spare width, so it costs no height at any width. */
+.ctl-hint { display: none; }
 @media (hover: hover) and (pointer: fine) and (min-width: 720px) {
-  .kbd-hint { display: block; text-align: center; font-family: var(--mono); font-size: 0.72rem; color: var(--outline); padding: 10px 0 6px; }
+  .ctl-hint { display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
 }
 kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant); }
 
-/* tool buttons: the product actions live on their own row, out of the way of
-   the player's own controls (spec §13.4); icon-only on phones */
-.tool-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 8px 4px; }
+/* tool buttons: the product actions, now at home in the stage bar (spec §13.4)
+   rather than on a row of their own. Icon-only at every width — the labels they
+   used to carry are in `title` + `aria-label`, and the copy feedback is the
+   `.copied` fill plus the snackbar, so the state reads without a label slot. */
 .tool-btn {
-  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px;
+  display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0;
   border: 0; border-radius: 999px; background: var(--container-hi); color: var(--on-surface);
-  font-family: var(--sans); font-size: 0.8rem; font-weight: 500; cursor: pointer;
+  cursor: pointer;
   transition: box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 .tool-btn:hover { box-shadow: var(--e1); }
-.tool-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-.tool-btn .lbl-copied { display: none; }
-.tool-btn.copied .lbl-default { display: none; }
-.tool-btn.copied .lbl-copied { display: inline; }
-@media (max-width: 719px) {
-  .tool-btn { width: 40px; height: 40px; padding: 0; justify-content: center; }
-  .tool-btn .lbl-default, .tool-btn .lbl-copied { display: none; }
-  .tool-btn.copied { background: var(--success-container); color: var(--on-primary-container); }
-}
+.tool-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.tool-btn.copied { background: var(--success-container); color: var(--on-primary-container); }
 
 /* script head, chat-bubble beats and the visual plan (mock §8) */
 .script-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }

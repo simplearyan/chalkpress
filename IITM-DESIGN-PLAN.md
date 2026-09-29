@@ -29,6 +29,7 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **8 script bubbles · math breaks · phone trims** | **done** — 8a the script head is logo-free again and `beats` now carry `bubbles` (one per paragraph), so 8 quoted narration bubbles sit over 3 plan rows on both questions and `#btn-copy-script` still pastes all 8; 8b both long displays are `aligned` over two rows (`\newline`, which `marked` passes through untouched) and no math surface overflows its box at 900+ — the `overflow-x: auto` net and the focusable-probe stay; 8c at ≤719px the try card loses its gold left rule and both part heads lose the `h2::after` marker |
 | 9 second reading style ("crisp") + header toggle | **planned** — §11 Phase 9, rationale in `IITM-READING-STYLES.md` |
 | **10 animation-preview spacing** | **done** — the ladder lands: the frame's air goes **12→22px** above and **12→24px** below on desktop (**12→20** / **12→22** on phones) — the port had taken the mock's stale `padding:8px 4px` where a browser renders the later `1rem 0.6rem` — plus 18px off the card's side edges in 16:9, card +44px desktop / +34px phones; measured at 320/360/414/719/900/1024/1440, both aspects, no overflow anywhere |
+| 12 animation preview player (bigger · cleaner · fullscreen) | **12.2 + 12.3 done** — the frame takes the room it already had (portrait **280→340**, and below 900 the height budget wins) and the chrome collapses from five rows to two (**256→172px**, −84); 12.4 fullscreen, 12.5 raster scaling and 12.6 are open — §11 Phase 12 |
 | **11 refresh stability** | **done** — math is rendered at **build** time (`site/src/lib/math.js` over a real `katex@0.16.11` dependency, `tex()` for marked output and `texEscaped()` for frontmatter strings), so the formulas never paint raw and swap; the head makes no third-party request at all. The section highlight is **seeded pre-paint** (`data-tab-init` from the `#part-` hash else `hic_tab:<path>`, plus `.scrolled`), so the pill and the bottom-nav item are correct on frame one instead of being derived by the spy after the browser restores scroll |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
@@ -793,8 +794,10 @@ not free. If 16:9 matters more than symmetry, the escape hatch is one rule
 `:has()`), but that is a hack for 20px and I would ship it symmetric first and look at it.
 
 Separately, if "more spacing" was also meant as **a bigger preview**, that is a different change and
-should be its own decision: widen the column (`minmax(320px,400px)` → `minmax(340px,440px)`) and let
-the portrait frame use it (`max-width: clamp(280px, 24vw, 360px)`). That is safe from a quality
+should be its own decision: widen the column (`minmax(320px,400px)` → `minmax(280px, 40%)`, later
+`minmax(320px, min(440px, 40%))`) and let
+the portrait frame use it (`max-width: clamp(280px, 24vw, 360px)`). **That decision is now Phase 12**,
+which also takes the chrome apart and adds fullscreen. It is safe from a quality
 standpoint — `Player.astro` rasterises the canvas at **450×800**, so any display width up to 450px is
 still a downscale, with no re-raster or blur — but it changes the produce grid's ratio and therefore
 the script column's width, so it is a taste call, not a correction. Recommend 10.1 alone first.
@@ -889,6 +892,193 @@ that is why it is additive-only and why the boot decides the common case determi
 **Done when:** a refresh of `/probability/pq-001/` paints the final formulas and the correct section on
 frame one, in both themes, at both nav tiers; the player, its payload, and the copy actions are unchanged;
 `npm run build` and `node tools/validate.mjs` are green; and no third-party request is made on load.
+
+---
+
+### Phase 12 — The animation preview player: bigger, cleaner, fullscreen
+
+Phase 10 bought the frame its air and 10.2 deferred "a bigger preview" as its own decision. This is that
+decision, widened: the preview should read as the **hero of Part 2** instead of a small tile beside a wall
+of text, and the chrome around it should stop competing with it. The interaction set is borrowed from
+`studios/yt/youtube_video_previewer.html` (a YouTube-style `<video>` player), which is a useful reference
+for *behaviour* and a misleading one for *structure* — see 12.1.
+
+**12.0 Measured today** (`/probability/pq-001/#part-produce`, light theme, DPR 1). "chrome" = the player
+card's height minus the frame's:
+
+| viewport | aspect | preview col | frame | raster | frame ÷ raster | card height | chrome | frame share of card |
+|---|---|---|---|---|---|---|---|---|
+| 1440 | 16:9 | 400 | 364×205 | 800×450 | 0.46 | 461 | 256 | 44% |
+| 1440 | 9:16 | 400 | 280×498 | 450×800 | 0.62 | 754 | 256 | 66% |
+| 390 | 9:16 | 347 | 280×498 | 450×800 | 0.62 | 720 | 222 | 69% |
+| 390 | 16:9 | 347 | 311×175 | 800×450 | 0.39 | 397 | 222 | 44% |
+
+Four facts fall out of that table and shape everything below.
+
+1. **The raster has headroom the frame never uses.** `Player.astro` rasterises at 450×800 (portrait) or
+   800×450 (landscape), so any *display* width up to 450 / 800 is a downscale with **zero** quality cost.
+   The portrait frame shows 62% of the pixels it already has.
+2. **In 16:9 the binding constraint is the column, not the cap.** The holder's inner box is 364px against
+   a `min(100%, 640px)` cap, so nothing but the column can widen it.
+3. **On phones the preview is not too small — it is too greedy.** A 720px card with a 498px frame is 64%
+   of a 780px viewport *before* the chrome; the fix at ≤719px is the chrome and a height cap, not growth.
+4. **On retina the portrait frame is already soft.** 280 CSS px × DPR 2 = 560 device px from a 450px
+   bitmap is a **1.24× upscale**. "Bigger" and "sharper" are the same change here: scale the raster.
+
+**12.1 What the reference offers, and what we leave.** Take: fullscreen on the *frame wrapper* with the
+radius dropped to 0 and the clip letterboxed by its own aspect; controls that live **over** the frame
+behind a gradient scrim and appear on hover/focus; a track that thickens on hover with a scrubber dot
+that scales in; drag-to-seek; click and double-click on the picture; controls that **idle-hide after ~3s
+while playing** but never hide when paused or hovering; `f` for fullscreen; and an icon/`aria` swap on
+`fullscreenchange`.
+
+Leave: volume and mute, captions, settings, miniplayer, autoplay, next-video — this clip has no audio
+track, no captions and no queue. Leave "theater mode" as a *third* size state: the aspect toggle already
+changes the frame's footprint by 293px, so three size controls for a 15-second loop is one too many.
+Leave Material Symbols (the site draws its own 24px inline SVGs) and the reference's Tailwind + Material
+CDN scaffolding — the site makes no third-party request at all since Phase 11. Also note the structural
+difference: this is a **canvas** fed by `HicRenderer.renderFrame(t)`, not a `<video>`, so seeking is a
+function call, `currentTime` drags re-render per frame, and "less chrome" has to come from CSS and
+layout rather than from hiding native controls.
+
+**12.2 Give the frame the room it already has.** Three sizes, in increasing cost:
+
+- Portrait cap: `.stage-frame` 280px → `min(100%, 340px)`. At a 400px column that is 280×498 → 340×604,
+  **+45% area**, and still a 0.76× downscale of the raster. The holder's inner box is 364, so the last
+  step to "fills the column" is available but it is a taste call (364×647 is a heavy block of black).
+- Height-aware portrait on small screens: `max-height: min(62dvh, 604px)` with the width derived from
+  `aspect-ratio`, so the frame can never push its own controls off the phone screen. Use `dvh`, not `vh`.
+- Preview column: `minmax(320px, min(400px, 40%))` → `minmax(320px, min(440px, calc(100% - 480px)))`.
+  The 40% bound cannot get the column to 440 at all — 40% of the 1016px container is 406 — so the column
+  is sized by the room the **script** can spare instead: 480px is the 40px gap plus the ~45-character
+  floor it has to keep. That resolves to 345 / 440 at 900px and holds 440 from ~990px up (script 536px),
+  with no breakpoint cliff and no need for a second tier. Cost: the script column 576 → 536px, ~70
+  characters a line measured on the real bubble, still inside the 45–75 band.
+
+**12.3 Cut the chrome (the "cleaner" half).** 256px of chrome around a 205px frame is the whole reason
+the landscape preview reads as a widget. Five rows become two:
+
+| row | today | proposed |
+|---|---|---|
+| `.stage-bar` (label + aspect pill) | 50 | 44 — absorb the tools |
+| `.progress-track` | 4 (+margins) | unchanged, but hover-grow to 6 with the dot scaling in |
+| `.ctl-row` (play · time · restart) | 44 | unchanged |
+| `.tool-row` (Copy code · AI prompt · Renderer) | 52 | **0** — icon buttons in the bar (≥720px) and over the frame (`≤719px`) |
+| `.kbd-hint` | 34 | **0** — folded into the bar as one right-aligned `K R F` hint, fine-pointer only |
+
+That is ~90px returned to the frame at desktop: the same card shows a 205px frame and a 166px one's worth
+of chrome instead of 256px. The tools must stay **always visible on coarse pointers** (`@media (hover: none)`) —
+a fade-in-on-hover pattern with no hover to trigger it is how a feature becomes invisible on a phone.
+
+**Shipped (12.2–12.3), and the three places the plan was wrong.** `site.css` + `Player.astro`:
+
+- The bar's label is **"Preview"**, not "Animation preview". It is 130px of mono, and the bar it now
+  shares with the pill and three tool buttons has 309px of room at the 345px column the 900px tier
+  resolves to — so that one word was the difference between a 50px bar and a 92px wrapped one, at every
+  width from 360 up (`264 <= 309` instead of `343 > 309`). The section heading and the intro line above
+  the card already say it.
+- The tools live in the bar at **every** width, not over the frame at ≤719px. Three buttons on the black
+  canvas would have to be positioned against the frame from outside it (cross-parent), and the phone win
+  turned out to be the height cap, not the row: chrome at 390px goes 222 → 164.
+- The keyboard hint rides the **transport row's** spare width (`.ctl-hint`, 95px inside a 424px row),
+  not the bar. The bar has no spare width and this row has nothing but.
+
+Measured on `/probability/pq-001/#part-produce` (light, DPR 1, both aspects); `≈` marks the shape a
+preview-only card has always had — chrome is the card minus the frame:
+
+| viewport | grid (col / script) | 9:16 frame | 16:9 frame | chrome | script chars/line | h-scroll |
+|---|---|---|---|---|---|---|
+| 360×640 | 370 single | 223×397 | 281×158 | **168** | 49 | 0 |
+| 414×896 | 370 single | 312×556 | 334×188 | **168** | 49 | 0 |
+| 560×900 | 504 single | 314×558 | 468×263 | **168** | 68 | 0 |
+| 719×900 | 651 single | 314×558 | 615×346 | **168** | 68 | 0 |
+| 720×900 | 651 single | 314×558 | 615×346 | **172** | 68 | 0 |
+| 900×900 | 345 / 440 | 309×549 | 309×174 | **172** | 56 | 0 |
+| 1024×900 | 440 / 469 | 340×604 | 404×227 | **172** | 60 | 0 |
+| 1440×900 | 440 / 536 | 340×604 | 404×227 | **172** | 70 | 0 |
+
+Against the 12.0 baseline at 1440: chrome **256 → 172** (−84), the portrait frame **280×498 → 340×604**
+(+45% area, frame share of the card 66% → 78%), the 16:9 frame **364×205 → 404×227** and its chrome from
+**56% → 43%** of the card, i.e. the acceptance line "at most half the card in 16:9" now holds at every
+tier. Below 900 the portrait frame is height-driven — `62dvh` — which is why 360×640 shrinks to 223×397
+(the whole card, 565px, fits under the 72px bar) while a 896-tall phone gets 312×556, up from 280×498.
+Two things the sweep exposed but did not change: at 900px in 16:9 the frame (174px) and the chrome (172px)
+are the same height — inherent to a 345px column, and the reason the copy at that tier is "one more row
+would break it"; and on DPR 2 the portrait frame is still a 1.37× upscale of a 450px raster, which is
+**12.5**, explicitly not this round. Also verified: no third-party request, the copy actions and their
+payloads untouched, canvas painted on load, `aria-label`/`title` on all three tools, and the track's rail
+thickening 4→6px through a pseudo-element so nothing below it moves.
+
+**12.4 Fullscreen.** Target `.stage-frame` (not the card, not the carousel):
+
+- CSS: `:fullscreen` → radius 0, `width/height: 100vw/100vh`, the canvas `contain`-fitted by its
+  aspect-ratio, and the controls re-rendered as an overlay at the bottom with a scrim. The frame is
+  `#0e1512`, so the overlay needs on-dark ink; that is a **fixed** set, not a theme role (`--on-surface`
+  flips with the theme and would vanish on the black frame). Declare it once, player-scoped, next to
+  `.stage-play`'s existing literals — the call sites keep using variables.
+- Entry points: a fullscreen button in the bar, `F`, and double-click on the picture. Exit: the same
+  button, `F`, or Esc (native). `fullscreenchange` syncs `aria-pressed`, the glyph and a `data-fs` hook.
+- Focus: move focus into the frame on enter and back to the button on exit; the clip is a canvas, so put
+  `tabindex="0"` on the frame and keep `aria-keyshortcuts` accurate.
+- **iOS**: element fullscreen is unavailable for non-`<video>` elements, so if `document.fullscreenEnabled`
+  is false fall back to a fixed, scroll-locked overlay (`position: fixed; inset: 0; z-index: 90`) with the
+  same `data-fs` styling. One extra block, and the feature exists on every phone instead of one that
+  silently does nothing.
+- Reduced motion: no transitions on enter/exit. No scrollbar and **no layout shift** from entering — the
+  page behind must not move, which is the Phase 11 invariant this must not break.
+
+**12.5 Scale the raster so bigger is not blurrier.** `makeHicRenderer(w, h, sw, sh)` already separates the
+**raster** from the **design space**, and renders the clip's DOM at the design size inside an SVG that
+scales natively to the raster — so the player can rasterise above its design size without touching the
+clip. Today it passes `(sw, sh, sw, sh)`, i.e. raster == design == the blit size in `drawTo(ctx, 0, 0, sw, sh)`.
+The change is to split those roles: `k = clamp(ceil(displayWidth × dpr ÷ designWidth), 1, 2)`, then
+`makeHicRenderer(450k, 800k, 450, 800)`, `canvas.width/height = 450k/800k`, and blit at the *raster* size.
+Re-raster on aspect toggle, fullscreen enter/exit and a debounced resize (~150ms), building the next
+canvas before swapping so the frame never flashes. Portrait in the card goes from a 1.24× upscale to a
+0.81× downscale on retina; 16:9 only reaches k=1 in the card and k=2 in fullscreen. **Risk to measure:**
+`drawAt` re-rasterises every animation frame, so 2× is 4× the pixels per frame — if fullscreen playback
+stutters on a phone, cap k at 1.5 there rather than dropping the idea.
+
+**12.6 Nice things worth their pixels.**
+
+- **Scene markers on the track.** The storyboard is already in the page (`#storyboard-data`) and Part 2
+  already renders its beats as "Visual plan" chips, so segment ticks on the progress track — with the
+  scene label on hover — cost no new data. It makes the 15-second structure legible, which is the one
+  thing a scrub bar of a *scripted* short cannot show today.
+- **Poster on first paint.** The frame is empty until `setClip` resolves; a build-time first frame (or a
+  synchronous `drawAt(0)`) means the preview is never a black rectangle. Cheaper than it sounds now that
+  the CDN round-trip is gone, so it may already be solved — measure before building it.
+- **A loop toggle.** The clip is authored as an 18s loop, and the player's end state is a dead
+  "Replay" button. One 44px control (or just looping by default) matches how the short is actually watched.
+
+**12.7 Responsive rules to hold.** `≥1200`: column 440, portrait frame ≤400 (raster 450), tools in the bar.
+`≥1200`: column 440, portrait frame 340, tools and hint in their rows. `990–1200`: the `calc(100% - 480px)`
+clamp gives the column whatever is left after the script's floor. `900–990`: column 345–440 — the pill and
+the three tools still share ONE 50px line (the measured bar contents are 264px against 309 available at
+900), which is why the label is one word; the 12.2 frame caps are what move here. `720–899`: single
+column, portrait frame height-driven at `62dvh`, 16:9 free to run to the card's width. `≤719`: single
+column, `62dvh` portrait, hint hidden, tools still in the bar and always visible. Every tier: no
+horizontal scroll, the script's measure inside the 45–75 band, and the 44px minimum hit target kept.
+
+**12.8 Verification.** The §9 matrix × both aspects × {@card, @fullscreen}: frame px, card height, chrome
+px and the `display ÷ raster` ratio (the last one must never exceed 1 at DPR 2 with the scaled raster);
+no h-scroll anywhere; the script column's characters-per-line re-measured after 12.2. Fullscreen: native
+path and the `data-fs` fallback, Esc returns focus to the button, the glyph and `aria-pressed` sync, the
+raster actually doubles, and entering changes the document height by **0**. Keyboard: K/R/F/←/→, F gated
+on the frame being on screen and never while typing. Regression: no third-party request, no post-paint
+layout shift, the copy actions and payload untouched (Phase 11's two invariants).
+
+**12.9 Decisions for you.** (a) ~~column 400 → 440, or leave it~~ **taken: 440, via the script's floor
+rather than a percentage**; (b) portrait frame 340 vs "fill the column" at 364 — still open, and now the
+only thing left in this list that 12.2's sweep can answer with one more measurement; (c) ~~tools in the bar
+vs over the frame~~ **taken: the bar at every width** (12.3's shipped note says why); (d) native fullscreen
+only, or with the fixed-overlay fallback for iOS; (e) which of 12.6 to build — scene markers are the ones I
+would spend on.
+
+**Done when:** the preview is visibly the hero of Part 2 at ≥1200px without the script's measure leaving
+the readable band, the chrome is at most half the card's height in 16:9, fullscreen works from the button
+/`F`/double-click and returns cleanly, nothing is blurrier than it is today (raster ≥ 1× device pixels on
+retina), and `npm run build` + `node tools/validate.mjs` stay green.
 
 ---
 
