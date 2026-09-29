@@ -93,7 +93,7 @@ try {
 } catch { storyboard = null; }
 const clip = storyboard ? compileStoryboard(storyboard) : null;
 ---
-<Base title={title} description={description} ogImage={`/meta-src/${d.id}-og.png`}>
+<Base title={title} description={description} ogImage={`/meta-src/${d.id}-og.png`} walkSteps={steps.length}>
   {/* first focusable element on the page: leaps past the sticky bar to the work */}
   <a class="skip-link" href="#part-solve">Skip to the solution</a>
   <AppBar title={series} back={{ href: `/${d.subject}/`, label: 'Library' }} tabs={tabs} />
@@ -394,14 +394,17 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
     };
     function render(animate: boolean) {
       try { localStorage.setItem(KEY, String(n)); } catch (e) {}
+      const done = n > total;
+      /* ONE source of truth for how much shows: this attribute. The CSS paints
+         it and the head boot stamped the saved depth pre-paint, so a refresh
+         never re-flows the sections below the walkthrough. Writing `hidden`
+         here instead would collapse them again after paint. */
+      document.documentElement.setAttribute('data-walk', done ? 'all' : String(n));
       steps.forEach((s, i) => {
-        s.hidden = i >= n;
         /* the last revealed step draws no connector: nothing follows it yet */
         s.classList.toggle('linked', i < n - 1);
         if (animate && i === n - 1) replay(s);
       });
-      const done = n > total;
-      answer.hidden = !done;
       if (done) {
         steps[total - 1]?.classList.add('linked');
         if (animate) replay(answer);

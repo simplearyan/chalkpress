@@ -13,11 +13,15 @@ interface Props {
   description?: string;
   /** Site-root-relative path to the social card image; must exist in public/ */
   ogImage?: string;
+  /** Steps in the page's walkthrough, so the head boot can restore the reader's
+   *  saved depth BEFORE the first paint. 0/absent = no walkthrough. */
+  walkSteps?: number;
 }
 const {
   title,
   description = 'Short-form math explainers — every problem worked in full, then repackaged as a short with script, animation, and copyable code.',
   ogImage = '/og-default.png',
+  walkSteps = 0,
 } = Astro.props;
 
 /* Canonical + absolute OG URLs need the deploy origin. Astro.site is set in
@@ -30,7 +34,7 @@ const canonical = new URL(Astro.url.pathname, site).href;
 const ogUrl = new URL(base + ogImage, site).href;
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-walk-total={walkSteps || undefined}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -85,6 +89,22 @@ const ogUrl = new URL(base + ogImage, site).href;
            never clear it, so a wrong guess lasts until the first scroll. */
         if (seed && seed !== 'solve') document.documentElement.classList.add('scrolled');
         document.documentElement.setAttribute('data-tab-init', seed || 'solve');
+
+        /* Same trick for the walkthrough: how much of the derivation is
+           revealed is known here, so CSS can paint it in the FIRST frame. The
+           walkthrough script used to collapse the steps after paint, which
+           shrank the section the reader was already looking at and dragged
+           every section below it — the animation preview included — up the
+           page on every refresh. `data-walk-total` is on <html>, which is
+           already parsed by the time this runs, so the clamp matches the
+           script's own (saved > total means "all steps done"). */
+        var total = parseInt(document.documentElement.getAttribute('data-walk-total') || '0', 10);
+        if (total > 0) {
+          var walk = parseInt(localStorage.getItem('walk-step:' + location.pathname) || '1', 10);
+          if (!(walk > 0)) walk = 1;
+          if (walk > total) walk = total + 1;
+          document.documentElement.setAttribute('data-walk', walk > total ? 'all' : String(walk));
+        }
       } catch (e) {}
     })();
   </script>

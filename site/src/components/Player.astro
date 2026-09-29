@@ -146,8 +146,48 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
     }
 
     const parsed = parseFenced(fenced);
-    let sw = ds === '9:16' ? 450 : 800;
-    let sh = ds === '9:16' ? 800 : 450;
+    /* The clip's own KaTeX tags point at jsDelivr so the copy-paste payload stays
+       portable — `fenced` is what Copy code emits and is left untouched. For the
+       PREVIEW they are pointed at the copy shipped in public/vendor/katex (same
+       0.16.11): a refresh used to fetch katex.min.js, auto-render.min.js and ~60
+       font files from the CDN before the first frame could be drawn, and hoisted
+       those two scripts into this page's own <head>. Note the replacement is
+       ABSOLUTE, not root-relative: the engine's asset inliner only rewrites
+       http(s) stylesheet links, and a relative one would be left in the clip with
+       its fonts un-inlined, i.e. the frame's math on fallback metrics. */
+    const VK = location.origin + base + '/vendor/katex/';
+    const localize = (s) => String(s || '').replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/katex@[\d.]+\/dist\//g, VK);
+    parsed.html = localize(parsed.html);
+    parsed.css = localize(parsed.css);
+    parsed.js = localize(parsed.js);
+
+    /* ── the reader's aspect for this question, applied HERE and synchronously.
+          It used to ride on the aspect button's click at the END of this
+          function, i.e. after setClip's awaits: a refresh painted the frame at
+          the COMPILED aspect and only resized it once that work finished, so
+          ~290px of the page below the preview moved after paint. A frame is
+          280x498 as 9:16 and ~380x205 as 16:9, so the jump landed right under
+          the reader's eyes. Setting it before the renderer exists also means one
+          rasterisation, not two. ── */
+    let aspect = ds;
+    try {
+      const saved = sessionStorage.getItem('iitmAspect:' + location.pathname);
+      if (saved === '9:16' || saved === '16:9') aspect = saved;
+    } catch (e) {}
+    if (aspect !== ds) {
+      const restoreBtn = document.getElementById('btn-aspect');
+      shell.dataset.aspect = aspect;
+      frame.dataset.aspect = aspect;
+      stage.dataset.aspect = aspect;
+      if (restoreBtn) {
+        restoreBtn.setAttribute('aria-pressed', aspect === '16:9' ? 'true' : 'false');
+        restoreBtn.title = aspect === '9:16' ? 'Show the frame in 16:9' : 'Show the frame in 9:16';
+        const lbl = restoreBtn.querySelector('.aspect-label');
+        if (lbl) lbl.textContent = aspect;
+      }
+    }
+    let sw = aspect === '9:16' ? 450 : 800;
+    let sh = aspect === '9:16' ? 800 : 450;
     stage.width = sw; stage.height = sh;
     const ctx = stage.getContext('2d');
     const fmt = (ms) => {
@@ -269,10 +309,8 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
       framing = false;
       if (wasPlaying) play();
     });
-    try {
-      const saved = sessionStorage.getItem('iitmAspect:' + location.pathname);
-      if (saved && saved !== ds) btnAspect.click();
-    } catch (e) {}
+    /* the saved aspect was already applied before the first raster — see the
+       synchronous restore at the top of boot() */
 
     /* ── copy actions: TR paste format + the regenerating AI prompt ── */
     /* label swap + snackbar; falls back to execCommand where the async

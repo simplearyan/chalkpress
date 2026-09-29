@@ -531,9 +531,36 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .copied .lbl-default { display: none; }
 .copied .lbl-copied { display: inline; }
 
+/* How much of the derivation shows is painted from `data-walk` on <html>,
+   which the head boot stamps before the first paint (see Base.astro). The
+   walkthrough script used to write `hidden` on the steps and the answer after
+   paint instead, so a refresh painted the whole derivation and then collapsed
+   it — dragging the sections BELOW the walkthrough, animation preview
+   included, up the page. JS off = no attribute = the full derivation reads.
+   The cap is 12 steps: past it the rules stop matching and everything shows,
+   which is the no-JS behaviour rather than a broken page. */
+html[data-walk="1"] #steps .step:nth-child(n + 2),
+html[data-walk="2"] #steps .step:nth-child(n + 3),
+html[data-walk="3"] #steps .step:nth-child(n + 4),
+html[data-walk="4"] #steps .step:nth-child(n + 5),
+html[data-walk="5"] #steps .step:nth-child(n + 6),
+html[data-walk="6"] #steps .step:nth-child(n + 7),
+html[data-walk="7"] #steps .step:nth-child(n + 8),
+html[data-walk="8"] #steps .step:nth-child(n + 9),
+html[data-walk="9"] #steps .step:nth-child(n + 10),
+html[data-walk="10"] #steps .step:nth-child(n + 11),
+html[data-walk="11"] #steps .step:nth-child(n + 12),
+html[data-walk="12"] #steps .step:nth-child(n + 13) { display: none; }
+/* the answer waits behind the last step; `all` is what the script sets when
+   the walkthrough is done, and the boot sets it for a reader who had finished */
+html[data-walk]:not([data-walk="all"]) #answer { display: none; }
+/* the control strip is `hidden` in the markup for the no-JS case, but it has to
+   occupy its space from the first frame or it pushes the steps down when the
+   script reveals it */
+html[data-walk] .walk-ctl[hidden] { display: flex; }
+
 /* a hidden step takes its connector with it, and the last visible step shows
    none — so the timeline always looks finished at the current depth */
-.walk .step[hidden], .walk .answer-card[hidden] { display: none; }
 .walk .step:not(.linked)::before { display: none; }
 .reveal { animation: reveal 0.35s ease both; }
 @keyframes reveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
