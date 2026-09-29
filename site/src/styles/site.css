@@ -315,9 +315,9 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
    only dark surface, and the controls sit on the card's own tone ── */
 .stage-shell {
   background: var(--container); border: 0; border-radius: 24px;
-  padding: 8px 8px 12px; box-shadow: none;
+  padding: 8px 8px 16px; box-shadow: none;
 }
-.stage-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 8px 4px 12px; color: var(--on-variant); flex-wrap: wrap; }
+.stage-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 8px 6px 12px; color: var(--on-variant); flex-wrap: wrap; }
 .stage-bar .label { font-family: var(--mono); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em; }
 /* aspect pill: shows the storyboard's frame and lets you re-frame the preview */
 .btn-aspect {
@@ -329,7 +329,7 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .btn-aspect:hover { filter: brightness(0.96); }
 .btn-aspect[aria-pressed="true"] { box-shadow: var(--e1); }
 .btn-aspect svg { width: 16px; height: 16px; }
-.stage-holder { display: flex; justify-content: center; padding: 8px 4px; }
+.stage-holder { display: flex; justify-content: center; padding: 16px 10px; }
 .stage-frame {
   position: relative; display: flex; width: 100%; max-width: 280px;
   border-radius: 14px; overflow: hidden; background: #0e1512;
@@ -525,21 +525,21 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 
 /* Part 2 is not a band: the same page tone as Part 1, separated by rhythm only
    (its padding comes from the shared section rule above). */
-.produce-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+.produce-grid { display: grid; grid-template-columns: 1fr; gap: 2.25rem; }
 /* a fixed-ish preview column: the 9:16 frame must not resize with the text */
 @media (min-width: 900px) { .produce-grid { grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 2.5rem; align-items: start; } }
 .produce-grid > * { min-width: 0; }
 
 /* progress: a native range input (keyboard + screen-reader seeking for free)
    dressed as the mock's 4px track with a dot */
-.progress-track { position: relative; height: 4px; margin: 4px 12px 0; border-radius: 4px; background: var(--container-hi); }
+.progress-track { position: relative; height: 4px; margin: 8px 12px 0; border-radius: 4px; background: var(--container-hi); }
 .progress-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; background: var(--accent); }
 .progress-track input[type="range"] { position: absolute; top: -20px; left: 0; width: 100%; height: 44px; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
 .progress-track input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; border: 0; }
 .progress-track input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; margin-top: -4px; border: 0; border-radius: 50%; background: var(--accent); }
 .progress-track input[type="range"]::-moz-range-track { height: 4px; background: transparent; border: 0; }
 .progress-track input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--accent); }
-.ctl-row { display: flex; align-items: center; gap: 4px; margin-top: 4px; padding: 0 4px; }
+.ctl-row { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding: 0 4px; }
 .pl-btn { width: 44px; height: 44px; flex-shrink: 0; display: inline-grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--on-surface); cursor: pointer; transition: background 0.15s ease, transform 0.1s ease; -webkit-tap-highlight-color: transparent; }
 .pl-btn:hover { background: color-mix(in srgb, var(--on-surface) 12%, transparent); }
 .pl-btn:active { transform: scale(0.94); }
@@ -558,13 +558,13 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
    phone-sized window of a desktop browser stays clean) */
 .kbd-hint { display: none; }
 @media (hover: hover) and (pointer: fine) and (min-width: 720px) {
-  .kbd-hint { display: block; text-align: center; font-family: var(--mono); font-size: 0.72rem; color: var(--outline); padding: 8px 0 2px; }
+  .kbd-hint { display: block; text-align: center; font-family: var(--mono); font-size: 0.72rem; color: var(--outline); padding: 10px 0 6px; }
 }
 kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant); }
 
 /* tool buttons: the product actions live on their own row, out of the way of
    the player's own controls (spec §13.4); icon-only on phones */
-.tool-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 8px 0; }
+.tool-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 8px 4px; }
 .tool-btn {
   display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px;
   border: 0; border-radius: 999px; background: var(--container-hi); color: var(--on-surface);
@@ -763,6 +763,10 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
      eats width, and the heading rule repeats what the PART kicker already does */
   .try-card { border-left: 0; }
   .part-head h2::after { display: none; }
+  /* phase 10: the preview is already the full width of its card on a phone, so
+     the air it gains there is vertical; the side inset is only a floor that
+     keeps the frame off the card's edges at 320 */
+  .stage-holder { padding: 14px 10px; }
 }
 /* declared after the 719 tier so the wrap rule's smaller thumb wins at 380 */
 @media (max-width: 380px) { .upnext-thumb { width: 64px; height: 64px; } }

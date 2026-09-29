@@ -27,6 +27,8 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **6 a11y · motion · focus** | **done** — focus-visible everywhere (one 3px primary ring, links/buttons/range/tabs all verified), `aria-live` on quiz feedback + walkthrough count + snackbar, `aria-keyshortcuts` on the player, `aria-pressed` on the aspect toggle, `aria-current` driven by the scroll-spy, 44px hit targets on compact controls via an `::after` box, skip link with focus transfer, and reduced-motion honoured in both CSS and the anchor-scroll JS |
 | 7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** §9 |
 | **8 script bubbles · math breaks · phone trims** | **done** — 8a the script head is logo-free again and `beats` now carry `bubbles` (one per paragraph), so 8 quoted narration bubbles sit over 3 plan rows on both questions and `#btn-copy-script` still pastes all 8; 8b both long displays are `aligned` over two rows (`\newline`, which `marked` passes through untouched) and no math surface overflows its box at 900+ — the `overflow-x: auto` net and the focusable-probe stay; 8c at ≤719px the try card loses its gold left rule and both part heads lose the `h2::after` marker |
+| 9 second reading style ("crisp") + header toggle | **planned** — §11 Phase 9, rationale in `IITM-READING-STYLES.md` |
+| **10 animation-preview spacing** | **done** — the ladder lands: the frame's air goes **12→22px** above and **12→24px** below (the port had taken the mock's stale `padding:8px 4px` when the browser renders the later `1rem 0.6rem`), 18px off the card's side edges in 16:9, card +44px; measured at 320/360/414/719/900/1024/1440, both aspects, no overflow anywhere |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
 the mock's exact values, what the live build measures today, the required change, the
@@ -574,6 +576,247 @@ on both questions; `#btn-copy-script` still pastes the whole sheet; no display f
 horizontally at 1440/1024/900 while genuinely wide math still does and keeps its focus ring; and
 at 360/414/719 both part heads are rule-free and the try card is borderless — in both themes,
 with `npm run build` and `node tools/validate.mjs` green.
+
+### Phase 9 — A second reading style, toggled from the header
+
+**9.0 What the second style is.** `problem-1-two-queens-one-king (10).html` is not a rival design —
+it is the *baseline* that (16) is an extension of. Its `<style>` block is 315 lines against (16)'s
+400, and the 113-line diff is one-directional: (16) keeps (10) and appends four named passes —
+*Identity: serif headings + warm gold accent*, *Borderless pass*, *Nested surfaces sit one tonal
+step above their card*, and *Cleaner header: "Library" pill + segmented section switch* — plus a
+progress bar moved from `--primary` to `--accent` and the phone tier widened from 640 to 719.
+So this is not "build a theme": it is **subtract the passes, swap one token block**, and the
+skeleton underneath is already a complete, coherent M3 design. That is why it is cheap.
+
+Two steps before any code:
+
+1. **Vendor the reference.** The repo has mocks `(3)`, `(5)`, the plain file and `(16)`, but not
+   `(10)` — it only exists in `~/Downloads`. Copy it to `mocks/` first, so the style has a
+   versioned source of truth like every other generation. (I can do this on request; it is a
+   1,280-line file, so it is worth a deliberate commit of its own.)
+2. **Name it.** The plan below uses `data-style="warm"` (today's port of (16)) and
+   `data-style="crisp"` (this one). Labels in the UI: *Warm* / *Crisp*. Rename freely — the
+   attribute value appears in exactly one place per rule.
+
+**9.1 The axis model.** Light/dark is already an axis (`data-theme`, `hic_theme`). Reading style is
+orthogonal to it, so it gets its own attribute, not a second set of theme values:
+
+```
+<html lang="en" data-theme="dark" data-style="crisp">
+```
+
+Both live on `<html>`, both are set by the inline head boot before first paint, both persist. The
+styles are *not* combined into a single four-valued theme because the two questions are genuinely
+independent: a user can want dark + crisp, and the toggle for each stays one click.
+
+**9.2 The token layer.** One block per style, each owning both of its themes. The crisp values are
+the mock's, verbatim:
+
+```css
+:root {                                   /* warm (default) — unchanged today */
+  --display: var(--serif);                /* heading face */
+  --card-fill: var(--container);          /* .card background */
+  --card-line: transparent;               /* .card border colour */
+  --nested-fill: var(--container-hi);     /* .math, script bubbles, .lang-head */
+}
+
+[data-style="crisp"] {
+  --bg:#f8faf8; --surface:#ffffff; --container:#eef3f0; --container-hi:#e3ebe6;
+  --on-surface:#191c1a; --on-variant:#404943; --outline:#707972; --outline-var:#c0c9c2;
+  --primary:#006c50; --on-primary:#ffffff; --primary-container:#b4f0d3; --on-primary-container:#002116;
+  --tertiary:#7a5900; --tertiary-container:#ffdea0; --on-tertiary-container:#261a00;
+  --error:#ba1a1a; --error-container:#ffdad6; --success:#006c50; --success-container:#b4f0d3;
+  --accent: var(--primary);               /* the gold identity IS what "warm" means */
+  --display: var(--sans);
+  --card-fill: var(--surface);
+  --card-line: var(--outline-var);
+  --nested-fill: var(--container);
+}
+[data-style="crisp"][data-theme="dark"] {   /* must come after the block above */
+  --bg:#101412; --surface:#171d1a; --container:#1c2320; --container-hi:#262d2a;
+  --on-surface:#e0e3e0; --on-variant:#c0c9c2; --outline:#8a938c; --outline-var:#404943;
+  --primary:#6ddbb1; --on-primary:#00382a; --primary-container:#00513b; --on-primary-container:#b4f0d3;
+  --tertiary:#efc04f; --tertiary-container:#5b4300; --on-tertiary-container:#ffdea0;
+  --error:#ffb4ab; --error-container:#5f1414; --success:#6ddbb1; --success-container:#00513b;
+}
+```
+
+Four call-site rewrites make those tokens bite, and each is a find-and-replace for a literal:
+`var(--serif)` → `var(--display)` (7 sites: line 71 headings, 167, 279, 307, 446, 678, 681);
+`.card` → `background: var(--card-fill); border: 1px solid var(--card-line)`;
+`.card .math, .script-sheet p, .code-card .lang-head` → `var(--nested-fill)`;
+and `--accent` needs *no* change at all — retargeting it in the crisp block turns the Part-2 gold
+identity green exactly as the mock has it, which is the single highest-leverage line in this phase.
+
+**9.3 The four things a token cannot express.** Scope these with `[data-style="crisp"]`, not with
+new tokens; they are one-off shapes, and a token would be less readable than the selector:
+
+- **The solution card keeps its box.** Our port strips it (`.solve > .card:not(.given)` is
+  transparent, padding 0, per (16)'s *Borderless pass*); the mock keeps it as a bordered surface.
+  Reintroduce fill + padding under crisp.
+- **The part marker and the try-card rule.** Our `.part-head h2::after` (52×3px) and
+  `.try-card{border-left:3px solid var(--accent)}` are (16) additions — mock (10) has neither, at
+  any width. Under crisp, suppress both unconditionally. Note the pleasant overlap: Phase 8c already
+  hides them at ≤719px, so the crisp rule is simply the same suppression without the media query.
+- **The app-bar hairline.** Ours appears only once content scrolls (`html.scrolled`); the mock's is
+  always on. Under crisp, re-assert it unconditionally.
+- **The tab strip.** The real structural gap. (16) moved the section switch into the app bar as a
+  secondary pill; (10) keeps it as a sticky in-page strip under the bar, with mono `1`/`2` prefixes
+  and a 3px primary underline. Render the strip in `[id].astro` (a `<nav class="part-tabs">` mirroring
+  AppBar's markup: real anchors, `data-tab`, `part-*` hrefs) and gate both:
+
+```css
+.part-tabs { display: none; }
+[data-style="crisp"] .part-tabs { display: flex; }
+[data-style="crisp"] .appbar .tabs { display: none; }
+```
+
+  This is low-risk because the mechanism already exists: Base.astro's scroll-spy queries *every*
+  `[data-tab]` on the page and sets `aria-current` on each match (Phase 6), so a third instance is
+  driven for free, and BottomNav keeps working underneath. **One thing the mock gets wrong and we
+  should not copy:** (10) leaves `scroll-padding-top: 72px` while adding a ~50px sticky strip, so
+  anchored headings land *under* the strip. Under crisp the padding must grow to
+  `calc(64px + 50px + env(safe-area-inset-top, 0px))`, and the per-style value has to be readable by
+  the settle-pin in Base.astro, which parses `scroll-padding-top` off the root — it already does, so
+  this is a CSS-only fix.
+
+**9.4 The header control.** `AppBar.astro`'s `.bar-r` gains a second 44px icon button beside
+`#theme-toggle`, following the pattern Phase 6 established for state-bearing controls:
+`aria-pressed` reflecting "crisp on", `title`, and an `aria-label` that names the current value and
+not just the action ("Reading style: Warm" → "Reading style: Crisp"), so the state is announced
+rather than inferred from a glyph. Base.astro wires it next to the theme toggle and, like that one,
+listens for `storage` so a second tab stays in sync.
+
+Because an unlabelled glyph is the weak point here, the icon should be a *pair* of stacked lines
+(one dense, one airy) rather than a sun/contrast motif that could be mistaken for the theme button,
+and the control is worth duplicating as a labelled row on the library page later if telemetry or
+feedback says it is being missed. Do **not** build a dropdown or a settings sheet for two options.
+
+**9.5 Boot, persistence, no flash.** Extend the existing inline head boot in `Base.astro` — it already
+runs before first paint for `hic_theme`, so the style joins it rather than adding a second script:
+
+```js
+var style = localStorage.getItem('hic_style')
+  || (window.matchMedia('(prefers-contrast: more)').matches ? 'crisp' : 'warm');
+document.documentElement.setAttribute('data-style', style);
+```
+
+The `prefers-contrast: more` default is the one opinion worth encoding: a reader whose OS already
+asks for more contrast is the exact reader crisp's white surfaces and hairlines exist for. The
+`theme-color` meta then has four values to keep in sync instead of two — warm light `#f5f4ee`,
+warm dark `#0f1512`, crisp light `#f8faf8`, crisp dark `#101412` — which is a small lookup table in
+both the boot and the toggle handler, not a new mechanism.
+
+**9.6 Deliberate deviations from the mock.** Three, each with a reason:
+
+- **Keep the 719px phone tier for both styles.** (10) switches at 640. Forking the mobile
+  breakpoint would move BottomNav's threshold and the single-column option grid per style, which
+  makes the shell unpredictable for no visual gain. One shell, one breakpoint.
+- **Keep the `--accent` → green retarget** rather than adding mock-(10) literals; noted in 9.2.
+- **Do not port (10)'s script-sheet `.script-sheet p:last-child` accent styling** (present in the
+  older `problem-2-vector-check (3).html` generation): the bubble sheet is now uniform by design
+  (Phase 8a), and one accent bubble would fight it.
+
+**9.7 What must not fork.** Only presentation may switch. The player, the walkthrough state machine,
+the quiz lock, the resume snackbar, the clipboard handlers, the KaTeX pipeline and the content in
+`content/` are style-independent and must stay single-source. A `[data-style]` selector in a
+behavioural rule is the signal that something has gone wrong.
+
+**9.8 Verification.** Phase 7's matrix stops being 7 widths and becomes 2 styles × 2 themes × 7
+widths. Specifically:
+
+- Re-run the **contrast table per style** — the Phase 6 numbers are for the warm palette and do not
+  carry over. Check `--on-variant` over `--container` and `--bg`, `--on-surface` over `--container`,
+  `--on-primary` over `--primary`, and `--on-tertiary-container` over `--tertiary-container` in all
+  four combinations, light and dark. Crisp is the *more* contrasty pair by construction, but the
+  cool palette is exactly where a near-miss hides.
+- **Style-flash check**: with `hic_style=crisp` persisted, a hard reload must paint crisp on the
+  first frame (same test that Phase 7 runs for `hic_theme`).
+- **Mode-switch check**: toggle style with the walkthrough midway, a partially played player, and a
+  snackbar on screen — nothing may reset. The toggles only touch `<html>` attributes, so this is a
+  guard against a stray rule reaching into state.
+- **Anchor check in crisp**: every in-page anchor (`#part-solve`, `#part-produce`, the skip link)
+  must land *below* the sticky tab strip, not under it — the bug (10) ships with.
+- **Self-test**: with crisp on, no element may still read a warm literal — check that the Part-2
+  kicker, the progress bar and the up-next overline all render green rather than gold.
+
+**Done when:** the header carries a working reading-style control; `hic_style` persists and paints
+before first paint; the crisp style matches mock (10)'s token block, white bordered cards, sans
+display, in-page tab strip and green accents; warm is pixel-identical to today; every behavioural
+feature is verifiably untouched across a style switch; the per-style contrast table passes in both
+themes; and `npm run build` + `node tools/validate.mjs` are green.
+
+### Phase 10 — Spacing for the animation preview
+
+**10.0 The finding.** The preview is not cramped sideways — it is cramped *vertically*, and we are
+tighter than the mock we ported. Both mocks declare `.player-stage` twice: `padding:8px 4px` early,
+then `padding:1rem 0.6rem` later, so what a browser actually renders is 16px vertical. Our
+`.stage-holder` took the earlier line (`padding: 8px 4px`), so today the frame sits **12px** below the
+bar (4px bar + 8px holder) and **12px** above the progress track (8px holder + 4px margin) — against
+the mock's 20px and 22px. Meanwhile `max-width: 280px` inside a `minmax(320px,400px)` column leaves
+~48px of slack on each side, so the 9:16 frame reads as airy left and right and pinched top and
+bottom. Same story for the track (ours `margin:4px 12px 0`, mock `6px .5rem 0`) and the controls
+(`margin-top:4px`, mock `.25rem` on a `.player-controls` that also carries 8px side padding).
+
+So the fix is mostly **vertical rhythm**, not horizontal padding — which matters, because horizontal
+padding is the one change that costs something (see 10.2).
+
+**10.1 The ladder.** Seven declarations, all literal values — the codebase deliberately keeps
+spacing as numbers rather than tokens (only the M3 roles are variables), so this stays consistent
+with its neighbours instead of inventing a second convention.
+
+| where | now | desktop | ≤719px |
+|---|---|---|---|
+| `.stage-shell` padding | `8px 8px 12px` | `8px 8px 16px` | same |
+| `.stage-bar` bottom padding | `4px` | `6px` | same |
+| `.stage-holder` padding | `8px 4px` | `16px 10px` | `14px 10px` |
+| `.progress-track` margin | `4px 12px 0` | `8px 12px 0` | same |
+| `.ctl-row` margin-top | `4px` | `8px` | same |
+| `.tool-row` padding | `8px 8px 0` | `12px 8px 4px` | same |
+| `.kbd-hint` padding | `8px 0 2px` | `10px 0 6px` | same |
+
+Plus `.produce-grid` mobile gap `2rem → 2.25rem`, so the player card and the script card separate
+once the player is taller.
+
+Net effect: the frame's inset becomes **22px above / 24px below** (from 12/12 — matching the mock's
+rhythm), 18px from the card's side edges (from 12), and the card grows roughly 38px taller. Nothing
+else on the page moves.
+
+**10.2 The one trade-off, and why the side padding is small.** The holder's horizontal padding is
+shared by both aspect states, and in 16:9 the frame is already edge-to-edge
+(`max-width: min(100%, 640px)` against a ~384px content box), so every pixel of side padding comes
+straight off the wide preview: 10px costs it 20px of width, a 5% reduction. That is the reason the
+ladder stops at 10 and not at the mock's 14: the wide frame is the one place where the extra air is
+not free. If 16:9 matters more than symmetry, the escape hatch is one rule
+(`.stage-frame[data-aspect="16:9"] { margin-inline: -10px }`, or zeroing the side padding with
+`:has()`), but that is a hack for 20px and I would ship it symmetric first and look at it.
+
+Separately, if "more spacing" was also meant as **a bigger preview**, that is a different change and
+should be its own decision: widen the column (`minmax(320px,400px)` → `minmax(340px,440px)`) and let
+the portrait frame use it (`max-width: clamp(280px, 24vw, 360px)`). That is safe from a quality
+standpoint — `Player.astro` rasterises the canvas at **450×800**, so any display width up to 450px is
+still a downscale, with no re-raster or blur — but it changes the produce grid's ratio and therefore
+the script column's width, so it is a taste call, not a correction. Recommend 10.1 alone first.
+
+**10.3 Phones.** At ≤719 the frame is already near the card's width, so the whole win is vertical:
+the ladder takes the air above it from 12px to 20px, which is the difference between the dark frame
+looking wedged under the bar and looking staged. The 10px side inset is a floor, not a target — at
+320px the card is 288px, minus 16px shell and 20px holder leaves 252px, so the frame falls back to
+`min(100%, 280px)` = 252 and never touches the card's edges. No page-level horizontal scroll at 320
+or 360 (`max-width:100%` + `overflow-x:clip` on `html,body` as today). The extra vertical room also
+helps the tool row, which wraps to two rows on a phone.
+
+**10.4 Verification.** Measure the frame's inset from the card's box on all four sides at 360 / 414 /
+719 / 900 / 1024 / 1440 and compare against the ladder (±1px), plus: no horizontal overflow at 320
+and 360; the 16:9 frame still fits its column (and note its new width, per 10.2); the card's total
+height before and after; and a re-run of the Phase 3a player check (`window.__hicSeek` to end state,
+aspect toggle leaving the script column pinned at `400px 576px`). In both themes — and in both styles
+once Phase 9 lands, where the crisp card is white with a hairline and the extra inset is more visible.
+
+**Done when:** the frame's insets match the ladder in both directions at every tier; no card or page
+scrolls horizontally at 320; the 16:9 state is still full-bleed within its column; the player and the
+aspect toggle still verify end-to-end; and the produce grid's two columns stay stable while the
+player changes height.
 
 ---
 
