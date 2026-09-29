@@ -6,6 +6,7 @@ import Base from '../layouts/Base.astro';
 import AppBar from '../components/AppBar.astro';
 import ShortCard from '../components/ShortCard.astro';
 import { posterFor } from '../lib/posters.js';
+import { link } from '../lib/url.js';
 
 const all = await getCollection('subjects');
 const entries = all
@@ -31,7 +32,7 @@ const entries = all
         const p = posterFor(e.data);
         return (
           <ShortCard
-            href={`/${e.data.subject}/${e.data.id}/`}
+            href={link(`/${e.data.subject}/${e.data.id}/`)}
             badge={e.data.topic.replace(/-/g, ' ').toUpperCase()}
             title={e.data.title}
             sub={e.data.topic.replace(/-/g, ' ')}

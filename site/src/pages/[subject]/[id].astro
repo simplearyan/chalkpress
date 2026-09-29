@@ -10,6 +10,7 @@ import AppBar from '../../components/AppBar.astro';
 import BottomNav from '../../components/BottomNav.astro';
 import Player from '../../components/Player.astro';
 import { posterFor } from '../../lib/posters.js';
+import { link } from '../../lib/url.js';
 import { tex, texEscaped } from '../../lib/math.js';
 import { compileStoryboard } from '../../../../runtime/hic-storyboard.esm.js';
 
@@ -96,7 +97,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 <Base title={title} description={description} ogImage={`/meta-src/${d.id}-og.png`} walkSteps={steps.length}>
   {/* first focusable element on the page: leaps past the sticky bar to the work */}
   <a class="skip-link" href="#part-solve">Skip to the solution</a>
-  <AppBar title={series} back={{ href: `/${d.subject}/`, label: 'Library' }} tabs={tabs} />
+  <AppBar title={series} back={{ href: link(`/${d.subject}/`), label: 'Library' }} tabs={tabs} />
   <BottomNav items={sections} />
 
   <div class="wrap-top">
@@ -286,7 +287,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
   <section class="zone-upnext" id="part-next">
     <div class="wrap-upnext">
       {next && (
-        <a class="upnext-card" href={`/${next.data.subject}/${next.data.id}/`}>
+        <a class="upnext-card" href={link(`/${next.data.subject}/${next.data.id}/`)}>
           <div class="upnext-thumb">
             <div class="upnext-poster">
               <div class="u-eyebrow">{posterFor(next.data).eyebrow}</div>
@@ -303,7 +304,7 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           </span>
         </a>
       )}
-      <a class="btn text upnext-library-link" href="/">← Back to Shorts library</a>
+      <a class="btn text upnext-library-link" href={link('/')}>← Back to Shorts library</a>
     </div>
   </section>
 </Base>

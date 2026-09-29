@@ -12,6 +12,7 @@
 // renderer) on their own row so they never crowd the player.
 import { compileStoryboard } from '../../../runtime/hic-storyboard.esm.js';
 import { clipToFenced, buildAiPrompt } from '../lib/animation-prompt.js';
+import { base } from '../lib/url.js';
 
 interface Props { storyboard: object; id?: string; prompt?: string; }
 const { storyboard, id = 'stage', prompt = '' } = Astro.props;
@@ -25,8 +26,8 @@ const fullPrompt = buildAiPrompt(prompt || ('Recreate the "' + title + '" explai
 /* The fenced payload carries literal </script> (KaTeX CDN tags) — ship it as
    \u003c-escaped JSON (valid inside a <script> island) and parse at boot. */
 const fencedJson = JSON.stringify(fenced).replace(/</g, '\\u003c');
-/* Vendor script + deep-link path must respect the deploy base (Pages). */
-const base = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '');
+/* Vendor script + deep-link path must respect the deploy base (Pages) — see
+   lib/url.js, which is the single place that knows it. */
 
 /* "0:15" for the static total in the timecode row */
 const totalSecs = Math.round(durMs / 1000);

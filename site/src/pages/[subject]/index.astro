@@ -5,6 +5,7 @@ import { getCollection } from 'astro:content';
 import { marked } from 'marked';
 import Base from '../../layouts/Base.astro';
 import AppBar from '../../components/AppBar.astro';
+import { link } from '../../lib/url.js';
 
 export async function getStaticPaths() {
   const all = await getCollection('subjects');
@@ -28,7 +29,7 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
   description={`${title} solutions portal — ${questions.length} question${questions.length === 1 ? '' : 's'} worked in full with search, topic filters, and animated explainers.`}
   ogImage="/og-default.png"
 >
-  <AppBar title={title} back={{ href: '/', label: 'Library' }} />
+  <AppBar title={title} back={{ href: link('/'), label: 'Library' }} />
   <div class="wrap">
     <header class="page-head">
       <div class="kicker">SOLUTIONS PORTAL</div>
@@ -60,7 +61,7 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
               <div class="label">FINAL ANSWER</div>
               <div class="value">{e.data.answer}</div>
             </div>
-            <a class="q-open" href={`/${e.data.subject}/${e.data.id}/`}>open full page →</a>
+            <a class="q-open" href={link(`/${e.data.subject}/${e.data.id}/`)}>open full page →</a>
           </div>
         </article>
       ))}
