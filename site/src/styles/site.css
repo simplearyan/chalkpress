@@ -569,8 +569,14 @@ html[data-walk] .walk-ctl[hidden] { display: flex; }
 /* Part 2 is not a band: the same page tone as Part 1, separated by rhythm only
    (its padding comes from the shared section rule above). */
 .produce-grid { display: grid; grid-template-columns: 1fr; gap: 2.25rem; }
-/* a fixed-ish preview column: the 9:16 frame must not resize with the text */
-@media (min-width: 900px) { .produce-grid { grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 2.5rem; align-items: start; } }
+/* The preview holds a fixed-aspect frame, so its column is capped rather than
+   proportional — but a FLAT 400px cap made the ratio invert just above the
+   breakpoint: at 900px the tracks were 400 / 385, i.e. the narrow column was
+   the script, at ~38 characters a line. The 40% bound leaves 400px in place
+   from ~1075px up (the wide layout is untouched, and the 9:16 frame is capped
+   at 280px inside it anyway) and hands the shortfall to the script below that:
+   330 / 455 at 900px, ~46 characters, back inside the readable 45-75 band. */
+@media (min-width: 900px) { .produce-grid { grid-template-columns: minmax(320px, min(400px, 40%)) minmax(0, 1fr); gap: 2.5rem; align-items: start; } }
 .produce-grid > * { min-width: 0; }
 
 /* progress: a native range input (keyboard + screen-reader seeking for free)
