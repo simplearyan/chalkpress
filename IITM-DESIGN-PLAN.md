@@ -24,7 +24,8 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **3c script + code drawer** | **done** — speech-bubble beats (scene marker split into the plan rows), Copy script, tertiary-container time chips, 64px summary + 180° chevron, tonal Copy all + per-language copy with label swap + the shared snackbar, theme-aware `pre` |
 | **4 up next + resume** | **done** — left-aligned tonal card with no resting border/shadow, 96→80→64px square thumb, accent topic overline inside the card, hover `--e2`, `.btn text` library link; resume snackbar (per-question key, 7-day TTL, skipped for hashes and shallow positions) whose "Start over" resets the walkthrough |
 | **5 library + portal** | **done** — tonal shelf cards with the M3 state layer, poster tones as classes, dashed placeholder tile, M3 search bar (pill + leading icon), assist chips on `--tertiary-container`, empty state on the `hidden` attribute; every inline `style=` and the last per-page `<style>` block removed |
-| 6–7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** |
+| **6 a11y · motion · focus** | **done** — focus-visible everywhere (one 3px primary ring, links/buttons/range/tabs all verified), `aria-live` on quiz feedback + walkthrough count + snackbar, `aria-keyshortcuts` on the player, `aria-pressed` on the aspect toggle, `aria-current` driven by the scroll-spy, 44px hit targets on compact controls via an `::after` box, skip link with focus transfer, and reduced-motion honoured in both CSS and the anchor-scroll JS |
+| 7 | not started — **specified in `IITM-COMPONENT-SPEC.md`** §9 |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
 the mock's exact values, what the live build measures today, the required change, the

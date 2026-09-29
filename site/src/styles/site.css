@@ -534,7 +534,7 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
    dressed as the mock's 4px track with a dot */
 .progress-track { position: relative; height: 4px; margin: 4px 12px 0; border-radius: 4px; background: var(--container-hi); }
 .progress-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; background: var(--accent); }
-.progress-track input[type="range"] { position: absolute; top: -14px; left: 0; width: 100%; height: 32px; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.progress-track input[type="range"] { position: absolute; top: -20px; left: 0; width: 100%; height: 44px; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
 .progress-track input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; border: 0; }
 .progress-track input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; margin-top: -4px; border: 0; border-radius: 50%; background: var(--accent); }
 .progress-track input[type="range"]::-moz-range-track { height: 4px; background: transparent; border: 0; }
@@ -764,3 +764,38 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 }
 /* declared after the 719 tier so the wrap rule's smaller thumb wins at 380 */
 @media (max-width: 380px) { .upnext-thumb { width: 64px; height: 64px; } }
+
+/* ── a11y + motion (phase 6) ────────────────────────────────────── */
+
+/* skip link: off-screen until focused, above the sticky bar */
+.skip-link {
+  position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 8px; z-index: 70;
+  transform: translateY(-250%);
+  background: var(--primary); color: var(--on-primary);
+  padding: 10px 16px; border-radius: 999px;
+  font-size: 0.9rem; font-weight: 500; text-decoration: none;
+  transition: transform 0.15s ease;
+}
+.skip-link:focus { transform: none; }
+/* in-page targets receive focus programmatically (skip link, tab jumps) —
+   their ring would only double up with the control that sent focus here */
+[tabindex="-1"]:focus { outline: none; }
+
+/* target size: compact controls keep their look but hit at least 44px tall
+   through an invisible extension of their own box */
+.tab, .btn, .tool-btn, .chip-btn, .copy-btn, .btn-aspect, .snack-act { position: relative; }
+.tab::after, .btn::after, .tool-btn::after, .chip-btn::after,
+.copy-btn::after, .btn-aspect::after, .snack-act::after {
+  content: ''; position: absolute; left: 0; right: 0;
+  top: calc((100% - 44px) / 2); bottom: calc((100% - 44px) / 2);
+}
+.q-open { display: inline-flex; align-items: center; min-height: 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -89,6 +89,8 @@ try {
 const clip = storyboard ? compileStoryboard(storyboard) : null;
 ---
 <Base title={title} description={description} ogImage={`/meta-src/${d.id}-og.png`}>
+  {/* first focusable element on the page: leaps past the sticky bar to the work */}
+  <a class="skip-link" href="#part-solve">Skip to the solution</a>
   <AppBar title={series} back={{ href: `/${d.subject}/`, label: 'Library' }} tabs={tabs} />
   <BottomNav items={sections} />
 

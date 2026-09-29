@@ -97,8 +97,14 @@ const ogUrl = new URL(base + ogImage, site).href;
       const el = document.querySelector(href);
       if (!el) return;
       e.preventDefault();
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
       history.pushState(null, '', href);
+      /* the default jump — which moves focus with it — is prevented above, so
+         move sequential focus to the target ourselves; this is what makes the
+         skip link actually skip */
+      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+      el.focus({ preventScroll: true });
     });
 
     // ── app shell ───────────────────────────────────────────────────────
@@ -142,7 +148,13 @@ const ogUrl = new URL(base + ogImage, site).href;
         if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
           cur = idOf(secs[secs.length - 1]);
         }
-        for (const l of links) l.classList.toggle('active', l.dataset.tab === cur);
+        for (const l of links) {
+          const on = l.dataset.tab === cur;
+          l.classList.toggle('active', on);
+          /* assistive tech needs the current item announced, not just painted */
+          if (on) l.setAttribute('aria-current', 'true');
+          else l.removeAttribute('aria-current');
+        }
       };
       window.addEventListener('scroll', spy, { passive: true });
       window.addEventListener('resize', spy);
