@@ -143,6 +143,9 @@ const ogUrl = new URL(base + ogImage, site).href;
       e.preventDefault();
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      /* our own jump is not the reader scrolling — the shell keeps the bars
+         put for it (see the lock on .nav-hidden in the app-shell script) */
+      window.dispatchEvent(new Event('hic:jump'));
       history.pushState(null, '', href);
       /* the default jump — which moves focus with it — is prevented above, so
          move sequential focus to the target ourselves; this is what makes the
@@ -159,6 +162,19 @@ const ogUrl = new URL(base + ogImage, site).href;
     (function () {
       const root = document.documentElement;
       let last = window.scrollY, ticking = false;
+      /* A scroll with a cause — a tab or bottom-nav tap, a walkthrough link, or
+         a #part- fragment landing — must not put the bars away: the control the
+         reader just pressed would slide out from under their thumb, and on a
+         phone that leaves no navigation at all. The lock holds until a real
+         gesture arrives (wheel, touch, or a scroll key). */
+      let locked = false;
+      const unlock = () => { locked = false; };
+      window.addEventListener('hic:jump', () => { locked = true; root.classList.remove('nav-hidden'); });
+      window.addEventListener('wheel', unlock, { passive: true });
+      window.addEventListener('touchmove', unlock, { passive: true });
+      window.addEventListener('keydown', (e) => {
+        if (/^(Arrow|Page|Home|End| )/.test(e.key || ' ')) unlock();
+      });
       window.addEventListener('scroll', () => {
         if (ticking) return;
         ticking = true;
@@ -166,7 +182,7 @@ const ogUrl = new URL(base + ogImage, site).href;
           const y = Math.max(0, window.scrollY);
           const d = y - last;
           root.classList.toggle('scrolled', y > 4);
-          if (y < 80) root.classList.remove('nav-hidden');
+          if (locked || y < 80) root.classList.remove('nav-hidden');
           else if (d > 6) root.classList.add('nav-hidden');
           else if (d < -6) root.classList.remove('nav-hidden');
           if (Math.abs(d) > 6) last = y;
@@ -180,6 +196,10 @@ const ogUrl = new URL(base + ogImage, site).href;
          it, in case the restoration lands after this frame. */
       window.addEventListener('load', () => requestAnimationFrame(() => {
         if (window.scrollY > 4) root.classList.add('scrolled');
+        /* landing on a fragment arrives here as a jump, not a gesture: read it
+           as "the reader has not scrolled yet" and keep the bars */
+        locked = true;
+        root.classList.remove('nav-hidden');
       }), { once: true });
       // leaving phone width: the bar is always visible again, so drop the
       // scroll-hidden state instead of letting it linger into the layout
