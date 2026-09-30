@@ -29,7 +29,8 @@ page, and its two parts plus Up Next), so one token sheet and one app shell driv
 | **8 script bubbles · math breaks · phone trims** | **done** — 8a the script head is logo-free again and `beats` now carry `bubbles` (one per paragraph), so 8 quoted narration bubbles sit over 3 plan rows on both questions and `#btn-copy-script` still pastes all 8; 8b both long displays are `aligned` over two rows (`\newline`, which `marked` passes through untouched) and no math surface overflows its box at 900+ — the `overflow-x: auto` net and the focusable-probe stay; 8c at ≤719px the try card loses its gold left rule and both part heads lose the `h2::after` marker |
 | 9 second reading style ("crisp") + header toggle | **planned** — §11 Phase 9, rationale in `IITM-READING-STYLES.md` |
 | **10 animation-preview spacing** | **done** — the ladder lands: the frame's air goes **12→22px** above and **12→24px** below on desktop (**12→20** / **12→22** on phones) — the port had taken the mock's stale `padding:8px 4px` where a browser renders the later `1rem 0.6rem` — plus 18px off the card's side edges in 16:9, card +44px desktop / +34px phones; measured at 320/360/414/719/900/1024/1440, both aspects, no overflow anywhere |
-| 12 animation preview player (bigger · cleaner · fullscreen) | **12.2 + 12.3 done** — the frame takes the room it already had (portrait **280→340**, and below 900 the height budget wins) and the chrome collapses from five rows to two (**256→172px**, −84); 12.4 fullscreen, 12.5 raster scaling and 12.6 are open — §11 Phase 12 |
+| **12 animation preview player (bigger · cleaner · fullscreen)** | **12.2–12.4 done** — the frame takes the room it already had (portrait **280→340**, height-driven below 900), the chrome collapses from five rows to two (**256→172px**, −84), and the card expands to fullscreen from a bar toggle / `F` / double-click with a scroll-locked overlay for iOS (the whole feature on any browser, `:fullscreen` or not); 12.5 raster scaling and 12.6 are open — §11 Phase 12 |
+| 13 the picture is the player (centre play/pause · blur-free glyph · chrome as an overlay) | **13.1–13.2 done** — the whole picture plays and pauses in every state (it was `pointer-events: none` while playing and once finished), with Space/Enter, a state-tracking label and a restart-on-tap at the end; the disc is flat 50% black with no ring and no blur, the glyphs are the mockups' rounded Material set from a single `ICON` map, and a transient centre flash confirms every toggle. **13.3–13.5 are re-specced for the user's follow-up: every setting floats over the picture and the card IS the picture** — 12.5 (raster scaling) is their prerequisite — §11 Phase 13 |
 | **11 refresh stability** | **done** — math is rendered at **build** time (`site/src/lib/math.js` over a real `katex@0.16.11` dependency, `tex()` for marked output and `texEscaped()` for frontmatter strings), so the formulas never paint raw and swap; the head makes no third-party request at all. The section highlight is **seeded pre-paint** (`data-tab-init` from the `#part-` hash else `hic_tab:<path>`, plus `.scrolled`), so the pill and the bottom-nav item are correct on frame one instead of being derived by the spy after the browser restores scroll |
 
 `IITM-COMPONENT-SPEC.md` is the detail layer for phases 2–5: one section per component with
@@ -1027,6 +1028,46 @@ thickening 4→6px through a pseudo-element so nothing below it moves.
 - Reduced motion: no transitions on enter/exit. No scrollbar and **no layout shift** from entering — the
   page behind must not move, which is the Phase 11 invariant this must not break.
 
+**Shipped (12.4), and the two places the plan was wrong.** The state machine is one attribute
+(`data-fs`) with two mechanisms behind it — the real Fullscreen API (`data-fs="native"`) and the
+scroll-locked fixed overlay (`data-fs="fixed"`) — and every rule, the glyph swap, `aria-pressed`
+and the button's label/title key on the attribute, so a browser without `:fullscreen` gets the
+whole feature and both paths cannot drift.
+
+- **The CARD expands, not the frame.** Fullscreening the frame alone would leave the bar, the
+  scrubber and the transport row outside the fullscreen element — duplicated or reparented to stay
+  reachable, then floating over the clip's own artwork where "Copy code" is a hover away from
+  invisible. Expanding the card keeps every control where the reader already knows it is, makes the
+  picture the only thing that changes size, and costs zero layout shift (measured: the card's rect
+  and the page's scroll position are identical before and after, including entering from the very
+  bottom of the document).
+- **The canvas is fitted, not stretched.** It is sized by its own intrinsic 450x800 (auto + both max
+  constraints), so fullscreen shows **443x788** on a 1440x900 screen — 0.99x of the bitmap — and
+  **376x668** on a 390x780 phone, against 312x556 in the card: +43% area where a phone can use it,
+  and never a blurred blow-up where it cannot. Growing it further is 12.5, and this makes 12.5 more
+  valuable than it was.
+- **Enter is optimistic.** The overlay is applied synchronously on click and real fullscreen is an
+  *upgrade* on top via `fullscreenchange`; `requestFullscreen()` is never awaited. That is not
+  belt-and-braces: the Freebuff preview webview neither resolves nor rejects the promise, and the
+  first implementation — which awaited it — left the button doing nothing at all. A request that
+  hangs must not be able to strand the reader outside the feature.
+- **The chrome gets an on-void token set.** `--on-surface`, `--on-variant`, `--container-hi`,
+  `--surface` and both outlines are re-pointed at fixed on-dark literals, and `--primary`,
+  `--accent` and `--tertiary` at the DARK theme's values — because the surface under the chrome is
+  now `#0e1512`, and the light theme's `#8a6508` seek dot and `#12523f` focus ring would be dark ink
+  on dark ink. Every call site keeps using its role name, so the bar, the pill, the tools, the
+  timecode, the kbd chips and the scrubber all follow with one declaration each.
+
+Also in this round: the bar's controls step down to 32px (their hit boxes are still 44 — the phase-6
+`::after` block) so the pill, the fullscreen toggle and the three tools share ONE 46px line at the
+345px column the 900px tier resolves to (279px of content against 309 of room; on a phone, 273
+against 285), and the `F` chip in the hint appears only from 1000px up, where that row has room for
+it — the toggle's own `title` carries the shortcut below that. Verified in-browser: instant enter and
+exit, focus into the frame on enter and back to the button on exit, glyph/`aria-pressed`/label sync,
+Esc for the overlay, a double-click on the picture that does not also toggle playback (`e.detail > 1`
+is ignored by the play overlay), no horizontal scroll at 360/390/1440 in either mode, and no
+third-party request anywhere (the network log is all localhost).
+
 **12.5 Scale the raster so bigger is not blurrier.** `makeHicRenderer(w, h, sw, sh)` already separates the
 **raster** from the **design space**, and renders the clip's DOM at the design size inside an SVG that
 scales natively to the raster — so the player can rasterise above its design size without touching the
@@ -1052,13 +1093,17 @@ stutters on a phone, cap k at 1.5 there rather than dropping the idea.
   "Replay" button. One 44px control (or just looping by default) matches how the short is actually watched.
 
 **12.7 Responsive rules to hold.** `≥1200`: column 440, portrait frame ≤400 (raster 450), tools in the bar.
-`≥1200`: column 440, portrait frame 340, tools and hint in their rows. `990–1200`: the `calc(100% - 480px)`
+`≥1000`: the hint's `F` chip appears (below that the row cannot hold it and the `title` carries the
+shortcut). `≥1200`: column 440, portrait frame 340, tools and hint in their rows. `990–1200`: the `calc(100% - 480px)`
 clamp gives the column whatever is left after the script's floor. `900–990`: column 345–440 — the pill and
 the three tools still share ONE 50px line (the measured bar contents are 264px against 309 available at
 900), which is why the label is one word; the 12.2 frame caps are what move here. `720–899`: single
 column, portrait frame height-driven at `62dvh`, 16:9 free to run to the card's width. `≤719`: single
-column, `62dvh` portrait, hint hidden, tools still in the bar and always visible. Every tier: no
-horizontal scroll, the script's measure inside the 45–75 band, and the 44px minimum hit target kept.
+column, `62dvh` portrait, hint hidden, tools still in the bar and always visible, and the bar's own
+gap and left padding tighten to 4px/8px so five controls keep one line at 360 (273 of content in 285
+of room, against 2px of slack without it). Fullscreen is available at every tier and behaves the same
+at every tier. Every tier: no horizontal scroll, the script's measure inside the 45–75 band, and the
+44px minimum hit target kept.
 
 **12.8 Verification.** The §9 matrix × both aspects × {@card, @fullscreen}: frame px, card height, chrome
 px and the `display ÷ raster` ratio (the last one must never exceed 1 at DPR 2 with the scaled raster);
@@ -1071,14 +1116,262 @@ layout shift, the copy actions and payload untouched (Phase 11's two invariants)
 **12.9 Decisions for you.** (a) ~~column 400 → 440, or leave it~~ **taken: 440, via the script's floor
 rather than a percentage**; (b) portrait frame 340 vs "fill the column" at 364 — still open, and now the
 only thing left in this list that 12.2's sweep can answer with one more measurement; (c) ~~tools in the bar
-vs over the frame~~ **taken: the bar at every width** (12.3's shipped note says why); (d) native fullscreen
-only, or with the fixed-overlay fallback for iOS; (e) which of 12.6 to build — scene markers are the ones I
-would spend on.
+vs over the frame~~ **taken: the bar at every width** (12.3's shipped note says why); (d) ~~native
+fullscreen only, or with the fixed-overlay fallback~~ **taken: both, behind one `data-fs` state** —
+which is what made the hover-free phone path and the no-`:fullscreen` browser the same code; (e) which
+of 12.6 to build — scene markers are the ones I would spend on.
 
 **Done when:** the preview is visibly the hero of Part 2 at ≥1200px without the script's measure leaving
 the readable band, the chrome is at most half the card's height in 16:9, fullscreen works from the button
 /`F`/double-click and returns cleanly, nothing is blurrier than it is today (raster ≥ 1× device pixels on
 retina), and `npm run build` + `node tools/validate.mjs` stay green.
+
+---
+
+### Phase 13 — The picture is the player (centre play/pause · a clean glyph · chrome as an overlay)
+
+Three complaints, one subject. (1) The preview only plays from the transport button — clicking the picture
+works when the clip is idle, but `pointer-events: none` switches that off the moment it is playing or
+finished, so **pause and replay are button-only**. (2) The resting affordance is a *glass* disc
+(`backdrop-filter: blur(4px)` over `rgba(255,255,255,.16)` with a 1px hairline) — the user asked for a
+clean icon with no blur. (3) The chrome takes a fixed band off the card, and the user wants it over the
+picture instead, so the animation gets the room. Both references do exactly that, so this phase is mostly
+a port of their *behaviour* with our tokens.
+
+**13.0 What the two references do.** `studios/yt/youtube_shorts_previewer (7).html` is the useful one here:
+
+- `.shorts-container` is the picture — `aspect-ratio: 9/16`, `height: calc(100vh - 120px)`, radius 12 (0
+  and `100dvh` at ≤639px). **There is no card around it and no row reserved for chrome.**
+- Two scrim zones sit *over* the picture: `.video-overlay-top` (gradient `to bottom`, `rgba(0,0,0,.6)` →
+  transparent, `opacity: 0`) and `.video-overlay-bottom` (`to top`, `.8` → transparent, no opacity rule at
+  all — it is always there). **Both are `pointer-events: none` with `* { pointer-events: auto }`**, which is
+  what lets the picture stay the click surface underneath them.
+- Reveal: `@media (hover: hover) and (pointer: fine) { .shorts-container:hover .video-overlay-top
+  { opacity: 1 } }`, plus a `show-controls` class added on `touchstart` and removed after **3000ms**.
+- **Tap anywhere = play/pause** (`videoWrapper.addEventListener('click', togglePlay)` on the wrapper, not
+  on a button), guarded against clicks that land on a real control (`e.target.closest('button')`).
+- **A transient centred glyph** as feedback: `#play-animation` is `fixed`, centred, `pointer-events: none`,
+  holding a `bg-black/50 rounded-full p-4` disc with a 48px glyph. On toggle it fades in over 300ms and
+  scales `150 → 100`, then after **500ms** fades out and returns to `scale-150`. Note the fill is a flat
+  `rgba(0,0,0,.5)` — **no `backdrop-filter` anywhere in it** — and the glyph it flashes is the state you
+  just entered (`play_arrow` on start, `pause` on stop).
+- A **3px progress line pinned to the picture's bottom edge**, independent of the revealed chrome, so
+  position is never hidden.
+- Space toggles play/pause; ArrowUp/Down move through the feed; the rest is Shorts furniture (right rail
+  of like/comment/share, channel + title overlay, comments sheet) plus an *app-style vs web-style* control
+  toggle (`body.app-style` swaps which control set renders).
+
+`youtube_video_previewer.html` (already mined in 12.1) adds the fine-pointer half: controls over the
+picture behind a `to top` scrim, the track thickening on hover, **controls that idle-hide after 3000ms
+while playing but never while paused, hovering or dragging**, and click/double-click on the picture.
+
+**Leave from both:** volume/mute, captions, autoplay, settings, miniplayer, the like/subscribe/comment
+rail, the comments sheet, swipe-to-next-short, upload, and the app-style/web-style toggle — this page has
+one clip, no audio, no feed and one design language. **Take:** the pointer-events scrim pattern, tap-to-
+play on the picture, the flat transient glyph with its timings, the revealed-chrome-on-tap window, the
+pinned edge progress line, and the paused-never-hides rule.
+
+**13.1 The centre is the play/pause surface, in every state.** Measured today on
+`/probability/pq-001/#part-produce`: `.stage-play` is `pointer-events: auto` with `cursor: pointer` only in
+`idle`/`paused`; it is `pointer-events: none` in `playing` **and** `done`, and `#stage-frame` carries
+`cursor: auto`, so nothing on the picture invites a click. Change:
+
+- The picture is the target, not the overlay: move the play/pause click to `.stage-frame` (the `.stage-play`
+  button stays as the *glyph*, `tabindex="-1"` as now, with `pointer-events: none` throughout so it can
+  never eat a click meant for the picture).
+- `cursor: pointer` on the picture, and `:focus-visible` already rings the focused frame.
+- A tap in `done` **restarts from 0 and plays** (the reference's `togglePlay` does the equivalent by
+  treating `ended` as "play again") — a dead tap at the end of a 15s clip is the worst state to leave.
+- **Space and Enter on the focused frame** toggle play/pause. The frame is already `tabindex="0"` and
+  `role="img"`; without a key handler Space scrolls the page from a focused player.
+- Keep the `e.detail > 1` guard so the double-click fullscreen gesture does not also toggle playback.
+
+**13.2 A clean glyph, no glass.** Replace `.stage-play span` (blur + translucent white + hairline) with a
+flat disc: `rgba(0,0,0,.5)` fill, no border, no `backdrop-filter`, **one white glyph**. Two sizes:
+
+- **Resting** (idle / paused / done): a 64px disc at the picture's centre, exactly the 44px-plus target we
+  have now, so nothing about the current affordance shrinks — only its material changes.
+- **Flash** (every toggle): a 72–80px disc that fades in over 300ms and scales `1.3 → 1`, holds ~450ms,
+  then fades out over 300ms (the reference's 300/500/300 at our type scale). This is what makes the toggle
+  legible on touch, where there is no hover to reveal anything, and while playing, where the resting glyph
+  is hidden.
+- Glyph = the state just entered (`play` on start, `pause` on stop) — the reference's convention. The
+  alternative (glyph of the *action*, i.e. pause-while-playing) reads as "tap to pause" and is the more
+  common player idiom; worth one A/B look, not a fork.
+- `prefers-reduced-motion`: no fade, no scale — the disc appears and disappears on the same timings.
+
+**Shipped (13.1–13.2).** Play/pause is now bound to `.stage-frame` — `role="button"` with a label that
+tracks the state (`Play` / `Pause` / `Resume` / `Replay`), Space and Enter on the focused picture, and one
+`toggle()` shared by the picture and the transport button so the two cannot drift. Measured on the live
+page: the picture toggles from `idle`, `playing` (pauses), `paused` and `done` (**restarts from 0 and
+plays**); a real double-click toggles playback **exactly once** (the `detail: 2` click is ignored, so the
+fullscreen gesture stays clean); Space on the focused frame toggles and no longer scrolls the page; the
+frame carries `cursor: pointer` and the transport button keeps its own label.
+
+`.stage-play` is now feedback rather than a control: `aria-hidden`, `pointer-events: none` in every state,
+showing **play** at rest, **replay** once finished, and hidden while playing (with the 0.24 veil lifting
+with it, which is the "playing" cue). The blurred glass is gone: `backdrop-filter` is `none`, the disc is a
+flat `rgba(0,0,0,.42)` at 64px with a 1.5px crisp ring so a bare glyph still reads as a control on a dark
+picture, and `.pl-flash` is the same disc at 76px — in over 300ms, gone 450ms later, glyph = the state you
+just entered (which answers 13.10(a) in the reference's favour, since that is what the reference flashes).
+Verified: the flash shows on every toggle and clears inside its window, it survives a zero-duration
+transition (the `prefers-reduced-motion` path), and `offsetWidth` restarts it on a fast second tap.
+
+Two places this left the plan's letter, both recorded here rather than quietly: `.stage-play` was a
+`<button tabindex="-1">` and is now a `<span>` — with the picture as the target it would have been a
+button nobody can click or focus, and an interactive element cannot sit inside a `role="button"` anyway;
+and the frame's role goes `img` → **`button`**, because once Space and Enter act on it that is what it is
+to a screen reader (the canvas keeps its own node inside it).
+
+**Shipped (13.2b — the glyphs, on the user's follow-up).** Both mockups render **Material Symbols** (the
+rounded set), where this player had the older **Material Icons** (sharp corners) — which also made play,
+pause, replay and skip the only filled *and* sharp shapes in an otherwise stroked icon system (the tools,
+the aspect pill, the fullscreen pair and every app-bar icon are lines). Now: all four glyphs live in one
+`ICON` map in `Player.astro` (each appears three times over — resting, flash, transport — and must never
+drift), the rounding comes from a matching round-join stroke on the filled path, and the pause is two
+stroked bars at Material's own span (x 6→18) and gap. Proportions come from the references too: a 28px
+glyph inside a 40px button and a 48px glyph inside an 80px disc. Ours are 30/44, and the disc loses the
+1.5px ring 13.2 gave it — the mockups' material is a flat 50% black with no border, so the glyph is the
+whole affordance. Verified as computed style: `backdrop-filter: none`, `box-shadow: none`,
+`background: rgba(0,0,0,.5)`, `stroke-linejoin: round` on every filled glyph, 32px resting / 44px flash /
+30px transport.
+
+**13.3 All chrome as an overlay — the card IS the picture.** This is the user's call and it overrides the
+footer this plan first proposed: the seek track, the transport row *and* the settings (aspect, copy code,
+copy prompt, renderer) all move over the picture, so nothing is reserved for them anywhere.
+
+```
+.stage-shell                 the card = the picture (radius 20, overflow hidden)
+  .stage-frame               fills the card; no reserved rows at all
+    #stage                   the canvas
+    .pl-chrome.pl-top        Preview · 0:15      |  16:9 · copy code · copy prompt · renderer · fullscreen
+    .pl-chrome.pl-bottom     scrubber · transport · hint
+    .pl-edge                 the 3px progress line at the bottom edge   (ALWAYS visible)
+    .pl-flash                the transient centre glyph (13.2)
+```
+
+- **The on-void token set moves from `[data-fs]` to `.stage-shell`.** The chrome now always sits on
+  `#0e1512` rather than on a tonal card, so the 12.4 overrides (fixed on-dark ink, `--container-hi`,
+  `--surface`, both outlines, and the dark theme's `--primary`/`--accent`/`--tertiary`) become the shell's
+  default; `[data-fs]` keeps only the layout — `position: fixed`/native, the chrome pinned on, and the
+  picture taking the whole viewport.
+- Both zones: `position: absolute`, pinned to the picture's edges, `z-index: 4` (under `.pl-flash`'s 6),
+  `pointer-events: none` with `* { pointer-events: auto }` — **the picture stays the click surface**, which
+  is what keeps 13.1 working with the chrome on top of it. A tap in the empty part of a scrim plays or
+  pauses, and therefore also *dismisses* the chrome, which is the reference's whole feel.
+- Scrims, as a fade into the void rather than a grey slab:`.pl-top` `linear-gradient(to bottom,
+  rgba(14,21,18,.72), rgba(14,21,18,0))`, `.pl-bottom` `linear-gradient(to top, rgba(14,21,18,.85),
+  rgba(14,21,18,0))`, sized to the zone + ~24px of breathing room below/above it.
+- Reveal, one attribute (`.controls-shown` on `.stage-shell`): on when the clip is **not playing**, on
+  `:hover` / `:focus-within` (fine pointers), or for **2500ms** after a tap or a player keypress. Hidden
+  only while *playing and idle* — the yt reference's rule, and the reason `paused` is in it. That is also
+  what answers the discoverability objection 12.3 raised about hiding `Copy code`: on this page the
+  resting state (idle or paused) shows the chrome, so the payload is visible exactly when a reader is
+  reading rather than watching, and only ever hidden while the animation is running.
+- Hidden means `visibility: hidden` on the zones — they leave the tab order and the a11y tree with the
+  picture — with `transition: opacity .18s, visibility 0s linear .18s` keeping the fade.
+- The chrome must never swallow the picture's own gestures: `dblclick` gets
+  `if (e.target.closest('.pl-chrome')) return;` (double-clicking the scrubber must not go fullscreen), and
+  the zones are excluded from the 13.1 click target by the same guard.
+- The aspect toggle now resizes the *card* (the picture is the card): the zones are absolute, so they
+  re-pin to the new edges with no reflow and no layout shift, and the state survives the toggle. The
+  edge progress line keeps working in both aspects because it is pinned to the picture's bottom edge.
+- The tools keep their `id`s, their `title`s and their aria labels — only their position changes, so the
+  copy actions and their payloads are untouched.
+- Fullscreen: the same two zones with `.controls-shown` forced on, and the picture still letterboxed
+  inside the frame box (12.4), so the scrims stretch to the viewport and the controls stay at its edges.
+
+**13.4 The room that buys** (measured at DPR 1; "overlay" = the pointer at 13.5 with the tracks off the
+layout and **the card equal to the picture**, since nothing is reserved any more):
+
+| viewport | today frame | today card | overlay frame | overlay card |
+|---|---|---|---|---|
+| 360×640 | 223×397 | 565 | **301×535** (+82% area) | **535** (−30) |
+| 390×896 | 312×556 | 724 | 311×553 (width-bound) | **553** (−171) |
+| 560×900 | 314×558 | 726 | **395×702** (+58%) | **702** (−24) |
+| 719×900 | 314×558 | 726 | 395×702 (+58%) | **702** (−24) |
+| 900 | 309×549 | 721 | 309×549 (column-bound) | **549** (−172) |
+| 1024–1440 | 340×604 | 776 | **404×718** (+41%) | **718** (−58) |
+
+Two readings of the same table, both true. Where height was the constraint the **picture** grows — +41%
+at the two-column widths, +58% in the single-column tier, +82% on a short phone. Where the picture was
+already width-bound (390×896, 900×900) its size is unchanged and the win is that **the card is now the
+picture**: −107 to −172px, which at 390×896 is the difference between the animation being partly below
+the fold and it fitting under the 72px bar. And nothing is ever smaller or taller than today at any width.
+
+**13.5 The caps the picture needs now.** `.stage-frame` portrait `max-width: 340px` → `min(100%, 440px)`
+(the raster budget, see 13.6) and the height budget `min(62dvh, 604px)` → `min(84dvh, 782px)`. The height
+numbers are not arbitrary: with the chrome afloat there is nothing left to reserve, so the budget is
+"the card plus the 72px bar must still fit the viewport" (0.84×640 + 72 = 610 of 640 at the shortest
+case in the matrix), and 782px is simply the raster cap's own height (440 × 16/9), which keeps the two
+caps from fighting. 16:9 keeps `min(100%, 640px)`, which the column already satisfies everywhere except
+the ≤719 tier, where the card is wide and the height budget governs.
+
+**13.6 12.5 is a prerequisite here, not a follow-up.** At 404 CSS px the picture is 1.8× its 450px bitmap
+on a DPR-2 screen, i.e. visibly soft, and the overlay is *what makes it that big* — so the raster has to
+scale in the same change: `k = clamp(ceil(displayWidth × dpr ÷ 450), 1, 2)`, then
+`makeHicRenderer(450k, 800k, 450, 800)` with the canvas at `450k/800k` and the blit at the raster size
+(12.5's note has the details and the risk). That needs a re-raster on aspect toggle, on resize (debounced
+~150ms) and on fullscreen enter/exit, and a **frame-cost benchmark** before it ships: `drawAt`
+re-rasterises every animation frame, so k=2 is 4× the pixels per frame; if a phone stutters, cap k at 1.5
+there rather than reverting.
+
+**13.7 Nice things worth their pixels.**
+
+- **Scene markers on the always-visible edge line** (12.6's data is already in the page): three ticks at
+  0/4/9s make the 15-second structure legible with the chrome hidden, which is the one thing a scrubber of
+  a *scripted* short cannot show.
+- **Swipe horizontally on the picture to seek** (mobile YouTube's gesture). Only react once `|dx| > |dy|`
+  and never `preventDefault` a vertical drag — the page must stay scrollable from over the picture.
+- **Hide the cursor** after ~2s of no mouse movement while playing in fullscreen (one class, two rules).
+- **Loop toggle** (12.6): the clip is authored as a loop, and `done` + `data-state` already model the end.
+- **Poster on first paint** (12.6) — re-measure before building; the CDN round-trip is gone, so this may
+  already be solved.
+
+**13.8 Tiers.** ≥1200: column 440, picture width-bound at ~404, both zones over it, revealed on
+hover/idle. 900–1200: the `calc(100% - 480px)` column, picture = the column's inner width. 720–899:
+single column, picture `min(100%, 440px)` and `min(84dvh, 782px)`. ≤719: single column, the same caps, no
+hover anywhere so `controls-shown` is driven by state and by the 2.5s tap window only — and on a coarse
+pointer the zones must also be reachable **without** hover, which the resting-state rule already does.
+Every tier: the picture is the click surface, the edge line is always visible, no horizontal scroll.
+
+**13.9 Verification.** Per §9 width × both aspects × card/fullscreen: frame px, card px, the coverage the
+chrome has over the picture — **0% while playing**, which is the state that matters, since a reader who is
+watching is not reading chrome — and, while revealed, 112px over a 718px portrait picture (16%) but over
+only 227px in 16:9 at 1440, i.e. **half the picture**. That last number is not a reason to shelve the
+overlay — the reference's own control bar covers its video whenever it is hovered, and the escape hatch is
+one tap — but it *is* the number to look at in the browser, and 13.10(e) keeps the fallback (rows below
+the picture for 16:9 at ≥900, where the picture has no room to spare) open. Then the
+`display ÷ raster` ratio at DPR 2 (must not exceed 1 after 13.6), and the frame-time benchmark at k=1 vs
+k=2. Behaviour: tap in all four states (idle → plays, playing → pauses, paused → plays, done → restarts)
+*and* that the same tap dismisses the chrome by starting playback; a tap on a scrim gap plays rather than
+being eaten by the zone; Space/Enter on the focused frame; double-click on the picture vs on the scrubber
+vs on a tool button (fullscreen only in the first case); every control reachable with no hover at all
+(state-driven reveal, then Tab — the hidden zones must be `visibility: hidden`, so Tab *reveals* them
+rather than skipping them); the aspect toggle re-pinning the zones with the state intact; the flash in
+reduced motion; the tap window closing after the timeout; and no layout shift from revealing or hiding
+(the zones are absolute; nothing may reflow). Contrast: the on-void ink set with the tokens moved onto
+`.stage-shell` — the light theme must be checked for the seek dot, the focus ring, the kbd chips and the
+tool fills against `#0e1512`, since they no longer inherit a fullscreen-only override. Regression:
+fullscreen's invariants from 12.4, the copy actions and their payloads, no third-party request, and the
+script card next to it untouched.
+
+**13.10 Decisions for you.** (a) ~~the flash glyph~~ **taken: the state you entered** (play on start, pause
+on stop), which is what the reference flashes and what shipped; (b) ~~do the product tools stay
+in the always-visible footer or move into the top zone~~ **taken by the user: the overlay** — the card is
+the picture and every setting floats over it, with the resting-state reveal as the mitigation 12.3 was
+worried about; (c) how long the tap window is
+(2.5s is the reference's 3s tuned down, since a 15s clip has less to aim at); (d) which of 13.7 to build —
+scene markers and the loop toggle are the two I would spend on; (e) **16:9 at ≥900px**: leave the overlay in
+place (chrome over a 227px picture while revealed, 0% while playing) or fall back to rows below the picture
+for that one combination. My recommendation is to ship the overlay and judge it there, because the fork
+costs a second layout to maintain and the coverage only exists while the reader is reaching for a control.
+
+**Done when:** the whole picture plays and pauses in every state with no more than one tap, the resting
+affordance and the flash have no blur, the picture is never smaller than it is today at any width, the
+card is never taller than it is today at any width, nothing is blurrier than today at DPR 2, the revealed
+chrome never covers more than a third of the picture, and `npm run build` + `node tools/validate.mjs` stay
+green.
 
 ---
 
