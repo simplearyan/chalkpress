@@ -875,33 +875,61 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 /* dark (or light) code scrolls with the page's own ink — the generic
    scrollbar rules above cover it now that pre follows the theme */
 
-/* one shared snackbar (mock §11): copy confirmations, later resume.
-   Three things here are load-bearing (each one was a visible bug):
-   1. `visibility` is what hides it — NOT the transform. The phone offset is
-      bottom:100px, so the old 120px slide parked the toast only 20px below the
-      viewport edge and left its top ~54px drawn permanently over the bottom
-      nav. `visibility` is discrete, so it flips without needing an animation
-      frame; the slide is decoration on top of it.
-   2. The resting slide is 12px, not a full drop, for the same reason: it is the
-      position a toast would be *stuck* in, and it must not reach the nav.
-   3. `width: max-content`, NOT auto: `left: 50%` makes the shrink-to-fit
-      available space only HALF the viewport, so an auto-width toast wrapped to
-      three lines on a phone. max-width still caps it (`100%`, not `100vw` —
-      vw counts the scrollbar, so the toast sat ~5px off-centre on desktop). */
+/* one shared notice (mock §11): the copy confirmations, and the "picked up
+   where you left off" offer. It hangs from the TOP, under the app bar, because
+   the bottom belongs to something else on a phone — the section nav — and a
+   toast parked down there fought it: the resting state sat visibly over the bar
+   and the bar's own slide-away moved under it. The top is empty on every page
+   and every width.
+
+   Four things here are load-bearing:
+   1. `visibility` is transitioned with a 0.28s DELAY in the resting state and
+      with no delay in `.show`. That is what gives the exit its animation:
+      visibility is discrete, so flipping it without a delay (or not listing it
+      at all) makes the notice vanish on the first frame and the slide-out never
+      plays.
+   2. It is centred with `left: 0; right: 0; margin-inline: auto` rather than
+      the usual `left: 50%; translate(-50%)`. Both edges pinned means the
+      containing block is known when the width is resolved, so `max-content`
+      gets the WHOLE viewport to fit into — under `left: 50%` it only ever sees
+      the right half, which is what wrapped the message to three lines on a
+      phone. (`100%`, not `100vw`, in the cap: vw counts the scrollbar, so a
+      centred notice sits ~5px off on a desktop.) A 520px ceiling keeps a long
+      message from becoming one very wide line.
+   3. The action never wraps; the message may. That is what keeps 320px to a
+      two-line message with "Start over" beside it instead of a column.
+   4. The entry and exit are the same transform, so the notice leaves the way it
+      arrived (up, from under the bar) rather than jumping.
+
+   Above the app bar (z-index 100 vs 50) and out of the pointer's way until it
+   is shown. */
 #snack {
-  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  transform: translate(-50%, 12px); visibility: hidden;
-  display: flex; align-items: center;
-  width: max-content; max-width: calc(100% - 32px);
+  position: fixed; top: calc(72px + env(safe-area-inset-top, 0px)); left: 0; right: 0; z-index: 100;
+  margin-inline: auto;
+  display: flex; align-items: center; gap: 12px;
+  width: max-content; max-width: min(520px, calc(100% - 32px));
+  padding: 10px 10px 10px 18px; border-radius: 14px;
   background: var(--on-surface); color: var(--bg);
-  padding: 14px 20px; border-radius: 8px; box-shadow: var(--e2);
-  font-size: 0.9rem; transition: transform 0.25s ease; z-index: 100; pointer-events: none;
+  box-shadow: var(--e2);
+  font-size: 0.9rem;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(-10px) scale(0.97);
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.2, 0, 0, 1), visibility 0s 0.28s;
 }
-#snack.show { transform: translate(-50%, 0); visibility: visible; pointer-events: auto; }
-.snack-act { margin-left: 20px; background: none; border: 0; padding: 6px 8px; font-family: var(--sans); font-size: 0.9rem; font-weight: 500; color: var(--primary-container); cursor: pointer; border-radius: 8px; white-space: nowrap; }
-/* the resting toast is 12px below its shown position, and must still clear the
-   nav: 92 = the 56px bar + 24px of air + those 12 */
-@media (max-width: 719px) { #snack { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } }
+#snack.show {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transform: none;
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.2, 0, 0, 1), visibility 0s;
+}
+.snack-act {
+  margin-left: 0;                 /* the row's gap spaces it now */
+  background: none; border: 0; border-radius: 10px;
+  padding: 8px 12px; min-height: 36px;
+  font-family: var(--sans); font-size: 0.9rem; font-weight: 500;
+  color: var(--primary-container); cursor: pointer; white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.snack-act:hover { background: color-mix(in srgb, var(--primary-container) 18%, transparent); }
 
 /* up next (mock §10): tonal borderless card, square thumb, hover elevation only */
 .zone-upnext { padding: 40px 0 64px; }
