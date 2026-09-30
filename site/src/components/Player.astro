@@ -33,6 +33,21 @@ const fencedJson = JSON.stringify(fenced).replace(/</g, '\\u003c');
    lib/url.js, which is the single place that knows it. */
 
 /* "0:15" for the static total in the timecode row */
+/* The player's glyphs live in one place because each of them appears three
+   times over (the resting affordance, the tap flash, the transport row) and
+   they must never drift apart. The geometry is Material *Symbols* — the rounded
+   set both mockups render — where the older Material Icons that were here had
+   sharp corners, and the rounding comes from a matching stroke on the filled
+   path. Sizes live in CSS (.pl-disc, .pl-flash, .pl-btn), so each call site
+   only declares the stroke that its size needs. */
+const ICON = {
+  play: '<path d="M8.6 6.1v11.8L18.4 12z" />',
+  /* two bars, Material's own span (x 6-18) and gap, rounded ends */
+  pause: '<path d="M8 7.5v9" /><path d="M16 7.5v9" />',
+  replay: '<path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" />',
+  prev: '<path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />',
+};
+
 const totalSecs = Math.round(durMs / 1000);
 const totalLabel = `${Math.floor(totalSecs / 60)}:${String(totalSecs % 60).padStart(2, '0')}`;
 const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
@@ -96,14 +111,31 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
   </div>
 
   <div class="stage-holder">
-    {/* The frame is a tab stop so `F` has something to act on and the picture
-        is reachable without a pointer; `aria-keyshortcuts` advertises it. */}
+    {/* The picture IS the control (phase 13.1): play/pause is bound to this
+        frame, not to a button over it, so the centre works in every state —
+        as a button it used to be `pointer-events: none` while playing and once
+        finished, which made pause and replay button-only. `role="button"` +
+        Space/Enter match that, and the label tracks the state. */}
     <div class="stage-frame" id="stage-frame" data-aspect={ds} tabindex="0"
-      role="img" aria-keyshortcuts="F">
+      role="button" aria-label="Play animation" aria-keyshortcuts="F"
+      title="Play or pause">
       <canvas id={id} data-aspect={ds} width={cw} height={ch}></canvas>
-      <button id="stage-play" class="stage-play" type="button" tabindex="-1" aria-hidden="true">
-        <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg></span>
-      </button>
+      {/* the resting glyph (feedback, never a pointer target): play, or replay
+          once the clip has finished */}
+      <span class="stage-play" aria-hidden="true">
+        <span class="pl-disc">
+          <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" set:html={ICON.play} />
+          <svg class="i-replay" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" set:html={ICON.replay} />
+        </span>
+      </span>
+      {/* the transient confirmation a toggle gets (phase 13.2): the state you
+          just entered, at the centre, gone in about a second */}
+      <span class="pl-flash" id="pl-flash" aria-hidden="true">
+        <span class="pl-disc">
+          <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" set:html={ICON.play} />
+          <svg class="i-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" set:html={ICON.pause} />
+        </span>
+      </span>
     </div>
   </div>
 
@@ -114,9 +146,9 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
 
   <div class="ctl-row">
     <button id="btn-play" class="pl-btn" type="button" aria-label="Play" title="Play" aria-keyshortcuts="K">
-      <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
-      <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-      <svg class="i-replay" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" /></svg>
+      <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" set:html={ICON.play} />
+      <svg class="i-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" aria-hidden="true" set:html={ICON.pause} />
+      <svg class="i-replay" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" set:html={ICON.replay} />
     </button>
     <span class="time"><span id="t-cur">0:00</span><span class="dim"> / {totalLabel}</span></span>
     <span class="grow"></span>
@@ -127,7 +159,7 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
       <kbd>K</kbd> <kbd>R</kbd> <kbd class="h-f">F</kbd> <kbd>←</kbd><kbd>→</kbd>
     </span>
     <button id="btn-reset" class="pl-btn" type="button" aria-label="Restart from beginning" title="Restart" aria-keyshortcuts="R">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true" set:html={ICON.prev} />
     </button>
   </div>
 </section>
@@ -227,6 +259,7 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
       shell.dataset.state = s;
       btnPlay.setAttribute('aria-label', LABELS[s]);
       btnPlay.title = LABELS[s];
+      frame.setAttribute('aria-label', LABELS[s] + ' animation');
     }
 
     /* ── wall-clock playback, same model as hic-modal / hic-scenes ── */
@@ -264,8 +297,42 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
       raf = 0;
       if (shell.dataset.state === 'playing') setState('paused');
     }
-    btnPlay.addEventListener('click', () => (playing ? pause() : play()));
-    document.getElementById('stage-play').addEventListener('click', () => (playing ? pause() : play()));
+    /* ── one toggle for all three ways in (phase 13.1): the transport button,
+          the picture itself and the Space/Enter key, so they cannot drift.
+          A tap on a FINISHED clip restarts it — leaving a dead tap at the end
+          of a 15-second loop is the worst state to strand a reader in. ── */
+    function toggle() {
+      if (shell.dataset.state === 'done') { t = 0; drawAt(0); play(); }
+      else if (playing) pause();
+      else play();
+      flash(shell.dataset.state);
+    }
+    /* the transient confirmation (phase 13.2): the state just entered, at the
+       centre, for ~1s. offsetWidth forces a reflow so a fast second tap
+       restarts the fade instead of inheriting a half-finished one. */
+    const flashEl = document.getElementById('pl-flash');
+    let flashTimer = 0;
+    function flash(state) {
+      flashEl.dataset.glyph = state === 'playing' ? 'play' : 'pause';
+      flashEl.classList.remove('show');
+      void flashEl.offsetWidth;
+      flashEl.classList.add('show');
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(() => flashEl.classList.remove('show'), 450);
+    }
+    btnPlay.addEventListener('click', toggle);
+    frame.addEventListener('click', (e) => {
+      /* the second click of a double-click belongs to the fullscreen gesture */
+      if (e.detail > 1) return;
+      toggle();
+    });
+    /* Space/Enter on the focused picture — the frame is a tab stop (12.4), and
+       without this Space scrolls the page from a focused player */
+    frame.addEventListener('keydown', (e) => {
+      if (e.key !== ' ' && e.key !== 'Enter' && e.key !== 'Spacebar') return;
+      e.preventDefault();
+      toggle();
+    });
     document.getElementById('btn-reset').addEventListener('click', () => {
       pause(); t = 0; drawAt(0); setState('idle');
     });

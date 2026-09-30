@@ -402,13 +402,50 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 }
 .stage-frame #stage { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; }
 .stage-frame[data-aspect="16:9"] #stage { aspect-ratio: 16 / 9; }
-/* on-frame play affordance: the 64px target you actually aim at on touch */
-.stage-play { position: absolute; inset: 0; z-index: 5; border: 0; padding: 0; cursor: pointer; display: grid; place-items: center; color: #fff; background: rgba(0,0,0,0.28); transition: opacity 0.2s ease; }
-.stage-play span { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform 0.15s ease; }
-.stage-play:hover span { transform: scale(1.08); }
-.stage-play svg { width: 32px; height: 32px; }
-.stage-shell[data-state="playing"] .stage-play,
-.stage-shell[data-state="done"] .stage-play { opacity: 0; pointer-events: none; }
+/* ── the picture is the target (phase 13.1) ─────────────────────────────────
+   Play/pause is bound to .stage-frame, not to a button over it, so the centre
+   works in EVERY state — it used to be `pointer-events: none` while playing and
+   once finished, which left pause and replay button-only with no cursor change
+   on the picture at all. `.stage-play` is therefore feedback: `aria-hidden`,
+   never a pointer target, dimming the picture underneath while the clip is not
+   running (the veil is the "not playing" cue) and showing the state's glyph. */
+.stage-frame { cursor: pointer; }
+.stage-play { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(0,0,0,0.24); pointer-events: none; transition: opacity 0.2s ease; }
+/* The disc is the mockups' material, exactly: a flat 50% black with NO border,
+   NO blur and no ring — the glyph is the whole affordance, and it is the only
+   filled shape in an otherwise line-icon player (the transport, the tools, the
+   aspect pill and the fullscreen pair are all stroked). Radius and glyph size
+   follow the references' proportions: they draw a 28px glyph in a 40px button
+   and a 48px glyph in an 80px disc. */
+.pl-disc {
+  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(0,0,0,0.5); color: #fdfcf9; transition: transform 0.15s ease;
+}
+.pl-disc svg { width: 32px; height: 32px; }
+@media (hover: hover) and (pointer: fine) {
+  .stage-frame:hover .stage-play .pl-disc { transform: scale(1.06); }
+}
+.stage-play .i-play, .stage-play .i-replay { display: none; }
+.stage-shell[data-state="idle"] .stage-play .i-play,
+.stage-shell[data-state="paused"] .stage-play .i-play,
+.stage-shell[data-state="done"] .stage-play .i-replay { display: block; }
+/* while it runs the resting glyph gets out of the way: the flash is what talks
+   during playback, and the veil lifting is the "playing" cue */
+.stage-shell[data-state="playing"] .stage-play { opacity: 0; }
+
+/* the flash (phase 13.2): one step bigger than the resting disc, in over 300ms
+   and gone 450ms later, with the transform coming back down from 1.3 — the
+   reference's 300/500/300 at our scale. It is the only feedback a tap gets on
+   touch, where there is no hover to reveal anything, and while playing, where
+   the resting glyph is hidden. Under prefers-reduced-motion the global rule
+   drops both transitions, so it appears and disappears on the same timings. */
+.pl-flash { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
+.pl-flash .pl-disc { width: 76px; height: 76px; transform: scale(1.3); transition: transform 0.3s ease; }
+.pl-flash .pl-disc svg { width: 44px; height: 44px; }
+.pl-flash.show { opacity: 1; }
+.pl-flash.show .pl-disc { transform: scale(1); }
+.pl-flash .i-play, .pl-flash .i-pause { display: none; }
+.pl-flash[data-glyph="play"] .i-play, .pl-flash[data-glyph="pause"] .i-pause { display: block; }
 
 /* ── fullscreen (phase 12.4): the CARD expands, not the frame ───────────────
    The player's controls all live OUTSIDE .stage-frame, so fullscreening the
