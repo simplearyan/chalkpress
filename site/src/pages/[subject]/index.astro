@@ -6,6 +6,7 @@ import { marked } from 'marked';
 import Base from '../../layouts/Base.astro';
 import AppBar from '../../components/AppBar.astro';
 import { link } from '../../lib/url.js';
+import { tex } from '../../lib/math.js';
 
 export async function getStaticPaths() {
   const all = await getCollection('subjects');
@@ -51,18 +52,28 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
     <div class="qlist" id="qlist">
       {questions.map((e, qi) => (
         <article class="card q-card" data-topic={e.data.topic} data-search={`${e.data.title} ${e.data.topic} ${e.data.answer}`.toLowerCase()} id={`q-${e.data.id}`}>
+          {/* the topic is an eyebrow over the title, not a second column beside
+              it: side by side the two fought for one line and a long title lost
+              (they squeezed, then the chip wrapped under a right-aligned title) */}
           <div class="q-head">
-            <h2>{qi + 1}. {e.data.title}</h2>
             <span class="q-topic">{e.data.topic.replace(/-/g, ' ')}</span>
+            <h2>{qi + 1}. {e.data.title}</h2>
           </div>
-          <div class="prose" set:html={marked.parse(e.body || '')} />
+          {/* tex() renders the body's $…$ at build time, the same way the
+              question page does — without it the delimiters ship as text */}
+          <div class="prose" set:html={tex(marked.parse(e.body || ''))} />
+          {/* the answer is its own strip, and the way into the full page is not
+              inside it: a link nested in a filled block reads as part of the
+              answer, and it left the block's height up to whether the answer
+              and the label happened to share a line */}
           <div class="answer-card">
-            <div>
-              <div class="label">FINAL ANSWER</div>
-              <div class="value">{e.data.answer}</div>
-            </div>
-            <a class="q-open" href={link(`/${e.data.subject}/${e.data.id}/`)}>open full page →</a>
+            <span class="label">Final answer</span>
+            <span class="value">{e.data.answer}</span>
           </div>
+          <a class="q-open" href={link(`/${e.data.subject}/${e.data.id}/`)}>
+            Open full page
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+          </a>
         </article>
       ))}
     </div>
@@ -70,6 +81,12 @@ const categories = [...new Set(questions.map((e) => e.data.topic))];
   </div>
 
   <script>
+    import { markOverflowingMath } from '../../lib/math-overflow.js';
+
+    /* a question body can carry a wide equation: same guard as the question
+       page, so the ones that scroll past this card's edge stay reachable */
+    markOverflowingMath();
+
     // search + filter (portal island — vanilla, same behavior as the mock)
     const input = document.getElementById('qsearch') as HTMLInputElement;
     const cards = Array.from(document.querySelectorAll<HTMLElement>('.q-card'));

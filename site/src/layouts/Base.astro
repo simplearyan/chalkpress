@@ -333,21 +333,69 @@ const ogUrl = new URL(base + ogImage, site).href;
        wires "Start over" to it). */
     const snack = document.getElementById('snack') as HTMLElement;
     let hideTimer: ReturnType<typeof setTimeout> | undefined;
-    (window as unknown as { __snack: (msg: string, action?: string, fn?: () => void, ms?: number) => void })
-      .__snack = (msg, action, fn, ms) => {
-        snack.textContent = msg;
-        if (action) {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'snack-act';
-          b.textContent = action;
-          b.addEventListener('click', () => { fn?.(); snack.classList.remove('show'); });
-          snack.appendChild(b);
-        }
-        snack.classList.add('show');
-        if (hideTimer) clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => snack.classList.remove('show'), ms || 2000);
+    /* removing the class is the whole of "hide" — the CSS animates it out, and
+       only the `visibility` transition's delay decides when it stops being
+       there. Everything that can take the notice away comes through here. */
+    let disarm: (() => void) | undefined;
+    function hide() {
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = undefined; }
+      disarm?.();
+      disarm = undefined;
+      snack.classList.remove('show');
+    }
+    /* A notice can be armed to leave when the reader keeps scrolling: telling
+       someone "picked up where you left off" about a position they have already
+       scrolled away from is just noise.
+
+       Deliberately NOT a scroll listener, however tempting: a `scroll` event is
+       not evidence of a reader. Three things on this page produce one that is
+       not the reader leaving — the resume flow's own jump to the saved
+       position, the layout shifting under a scroll adjustment as the player's
+       canvas and KaTeX settle, and the browser correcting for either — and every
+       one of them arrives after the notice is up. A wheel, a touch drag or a
+       scroll key is unambiguous; those are what "keeping scrolling" actually
+       looks like, and the 6s timeout still covers the rest (a scrollbar drag,
+       say). */
+    function leaveOnScroll(): () => void {
+      const done = () => { off(); hide(); };
+      const onWheel = () => done();
+      const onTouch = () => done();
+      const onKey = (e: KeyboardEvent) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const t = e.target as HTMLElement | null;
+        if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+        if (/^(Arrow|Page|Home|End| )/.test(e.key || ' ')) done();
       };
+      const off = () => {
+        removeEventListener('wheel', onWheel);
+        removeEventListener('touchmove', onTouch);
+        removeEventListener('keydown', onKey);
+      };
+      addEventListener('wheel', onWheel, { passive: true });
+      addEventListener('touchmove', onTouch, { passive: true });
+      addEventListener('keydown', onKey);
+      return off;
+    }
+    (window as unknown as {
+      __snack: (msg: string, action?: string, fn?: () => void, ms?: number, leaveOnScrollFlag?: boolean) => void;
+    }).__snack = (msg, action, fn, ms, leaveWithScroll) => {
+      hide();
+      snack.textContent = msg;
+      if (action) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'snack-act';
+        b.textContent = action;
+        b.addEventListener('click', () => { fn?.(); hide(); });
+        snack.appendChild(b);
+      }
+      /* re-show on a reflow so a second call restarts the entrance instead of
+         inheriting a half-finished one (same trick as the player's flash) */
+      void snack.offsetWidth;
+      snack.classList.add('show');
+      if (leaveWithScroll) disarm = leaveOnScroll();
+      hideTimer = setTimeout(hide, ms || 2000);
+    };
   </script>
 </body>
 </html>

@@ -318,27 +318,10 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
 </Base>
 
 <script>
-  /* Wide display equations scroll inside their own surface. A scrollable region
-     that cannot be focused is unreachable by keyboard, so after KaTeX has
-     typeset (it runs on DOMContentLoaded) label only the ones that actually
-     overflow. */
-  (function markOverflowingMath() {
-    const surfaces = [...document.querySelectorAll<HTMLElement>('.prose p')]
-      .filter((el) => el.querySelector('.katex-display'));
-    if (!surfaces.length) return;
-    const mark = () => {
-      for (const el of surfaces) {
-        if (el.scrollWidth <= el.clientWidth + 1) continue;
-        el.tabIndex = 0;
-        el.setAttribute('role', 'region');
-        el.setAttribute('aria-label', 'Equation — scrolls horizontally');
-      }
-    };
-    // typeset happens on DOMContentLoaded and again as fonts land
-    requestAnimationFrame(mark);
-    window.addEventListener('load', mark);
-    setTimeout(mark, 600);
-  })();
+  import { markOverflowingMath } from '../../lib/math-overflow.js';
+
+  /* equations that overflow their surface become focusable regions */
+  markOverflowingMath();
 
   /* Try-it quiz: one attempt. Picking locks the row and always marks the
      correct option, so a wrong guess still teaches something; the outcome is
@@ -519,12 +502,15 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
       const y = s.y;
       setTimeout(() => {
         scrollTo({ top: y, behavior: 'auto' });
+        /* the last argument arms it to leave on the reader's own scroll: by
+           then the position it is offering to keep is one they have moved away
+           from, and the offer is noise */
         (window as any).__snack?.('Picked up where you left off', 'Start over', () => {
           try { localStorage.removeItem(KEY); } catch { /* private mode */ }
           (window as any).walkReset?.();
           const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-        }, 6000);
+        }, 6000, true);
       }, 400);
     });
   })();

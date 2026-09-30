@@ -78,8 +78,10 @@ h1, h2, h3, p, li, dd, figcaption, .prose, .value, .u-sub, .s-sub {
   -webkit-hyphens: auto; hyphens: auto;
 }
 .prose li { min-width: 0; }
-/* KaTeX display math can exceed narrow columns — scroll inside its block */
-.prose .katex-display { margin: 0.6rem 0; overflow-x: auto; overflow-y: hidden; padding: 0.15rem 0; }
+/* KaTeX display math can exceed narrow columns — scroll inside its block. A
+   thin themed bar instead of the default one, which on a phone is a full-height
+   grey slab under an equation that is only 60px tall. */
+.prose .katex-display { margin: 0.6rem 0; overflow-x: auto; overflow-y: hidden; padding: 0.15rem 0; scrollbar-width: thin; scrollbar-color: var(--outline-var) transparent; }
 .prose .katex { max-width: 100%; }
 .try-option .katex-display { overflow-x: auto; }
 .try-option { overflow-wrap: break-word; }
@@ -130,15 +132,50 @@ h1, h2, h3, p, li, dd, figcaption, .prose, .value, .u-sub, .s-sub {
   background: var(--tertiary-container); border-color: transparent;
   color: var(--on-tertiary-container);
 }
+/* Question cards. Three things were doing the work of three others:
+   1. The topic was a second column beside the title, so a long title squeezed
+      and then the chip wrapped under a right-aligned heading. It is an eyebrow
+      over the title now — one full-width line each, at every width — and it
+      takes the card's topic colour the way the library's cards already do.
+   2. The answer kept its filled block but lost half the padding and the 24px
+      radius: at 1.25rem the whole string (decimal AND the fraction, which is
+      what our answer field carries) fits one line on a 360px phone, where
+      1.4rem wrapped it to two and the block towered over the card.
+   3. "open full page" left the answer block. Nested inside a filled container
+      it read as part of the answer, and it made the block's height depend on
+      whether label and value shared a line. It is the card's own footer row
+      now, with a real arrow and a 44px target, and the arrow steps right on
+      hover like the up-next card's. */
 .qlist { display: flex; flex-direction: column; gap: 1.2rem; }
-.q-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
-.q-head h2 { font-size: 1.15rem; }
-.q-topic { font-family: var(--mono); font-size: 0.68rem; color: var(--on-variant); text-transform: uppercase; letter-spacing: 0.05em; }
+.q-head { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.q-head h2 { font-size: 1.15rem; line-height: 1.3; }
+.q-topic { font-family: var(--mono); font-size: 0.66rem; font-weight: 500; color: var(--primary); text-transform: uppercase; letter-spacing: 0.07em; }
 .q-card .prose { margin-top: 0.7rem; }
-.q-card .answer-card .value { font-size: 1.4rem; }
-.q-open { font-family: var(--mono); font-size: 0.8rem; color: var(--primary); text-decoration: none; white-space: nowrap; }
-.q-open:hover { text-decoration: underline; }
+.q-card .answer-card {
+  display: block; margin-top: 14px; padding: 12px 16px; border-radius: 16px;
+}
+.q-card .answer-card .label { font-size: 0.66rem; letter-spacing: 0.12em; }
+.q-card .answer-card .value { display: block; margin-top: 3px; font-size: 1.25rem; line-height: 1.3; }
+.q-open {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  min-height: 44px; margin-top: 4px;
+  font-family: var(--mono); font-size: 0.78rem; color: var(--primary);
+  text-decoration: none; white-space: nowrap;
+}
+.q-open svg { width: 15px; height: 15px; transition: transform 0.15s ease; }
+.q-open:hover svg { transform: translateX(3px); }
 .portal-empty { text-align: center; color: var(--on-variant); padding: 3rem 0; }
+
+/* phones: the list IS the page, so the trims happen inside the cards — one step
+   off the title and the answer, and the equation surface gives back 8px of the
+   width the equation can actually use */
+@media (max-width: 639px) {
+  .qlist { gap: 1rem; }
+  .q-head h2 { font-size: 1.05rem; }
+  .q-card .answer-card { padding: 11px 14px; border-radius: 14px; }
+  .q-card .answer-card .value { font-size: 1.15rem; }
+  .q-card .prose p:has(.katex-display) { padding: 6px 12px; margin: 10px 0; }
+}
 
 /* ── 404 (dist/404.html — see pages/404.astro) ────────────────────────────
    Same hero as the library, one way back, then the portals as a shelf of
