@@ -364,16 +364,24 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .stage-bar { display: flex; justify-content: flex-end; align-items: center; gap: 6px; padding: 8px 8px 6px 12px; color: var(--on-variant); flex-wrap: wrap; }
 .stage-bar .label { margin-right: auto; font-family: var(--mono); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em; }
 .stage-tools { display: flex; align-items: center; gap: 4px; }
-/* aspect pill: shows the storyboard's frame and lets you re-frame the preview */
+/* aspect pill: shows the storyboard's frame and lets you re-frame the preview.
+   The bar's controls are 32px (their hit boxes are still 44 — see the phase-6
+   `::after` block), which is what lets the pill, the fullscreen toggle and the
+   three product actions share ONE line at the 345px column the 900px tier
+   resolves to: 277px of content against 309 of room. */
 .btn-aspect {
-  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px;
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px;
   border: 0; border-radius: 999px; background: var(--container-hi); color: var(--on-surface);
-  font-family: var(--mono); font-size: 0.76rem; cursor: pointer;
+  font-family: var(--mono); font-size: 0.74rem; cursor: pointer;
   transition: filter 0.15s ease, box-shadow 0.15s ease;
 }
 .btn-aspect:hover { filter: brightness(0.96); }
 .btn-aspect[aria-pressed="true"] { box-shadow: var(--e1); }
-.btn-aspect svg { width: 16px; height: 16px; }
+.btn-aspect svg { width: 15px; height: 15px; }
+/* fullscreen toggle — same pill as the tools it sits beside, two glyphs */
+.btn-fs .i-compress { display: none; }
+.stage-shell[data-fs] .btn-fs .i-expand { display: none; }
+.stage-shell[data-fs] .btn-fs .i-compress { display: block; }
 .stage-holder { display: flex; justify-content: center; padding: 16px 10px; }
 /* The portrait cap is a RASTER budget, not a taste: Player.astro rasterises
    450x800, so everything up to 450px of display width is a downscale with zero
@@ -401,6 +409,75 @@ html.scrolled .appbar { border-bottom-color: var(--outline-var); }
 .stage-play svg { width: 32px; height: 32px; }
 .stage-shell[data-state="playing"] .stage-play,
 .stage-shell[data-state="done"] .stage-play { opacity: 0; pointer-events: none; }
+
+/* ── fullscreen (phase 12.4): the CARD expands, not the frame ───────────────
+   The player's controls all live OUTSIDE .stage-frame, so fullscreening the
+   frame alone would mean duplicating or reparenting the bar, the scrubber and
+   the transport row to keep them reachable — and then they would have to float
+   over the clip's own artwork, which is how "Copy code" becomes a hover away
+   from invisible. Expanding the card keeps every control where the reader
+   already knows it is and changes the size of exactly one thing: the picture.
+
+   One state, two mechanisms. `[data-fs="native"]` is the real Fullscreen API;
+   `[data-fs="fixed"]` is the scroll-locked overlay iOS needs, because it
+   refuses element fullscreen for anything but <video>. Everything below keys on
+   the attribute, so both paths are styled — and testable — by the same rules,
+   and a browser without :fullscreen support still gets the whole feature.
+
+   The chrome's ink is a FIXED on-dark set, not a theme role: --on-surface
+   flips with the theme and would vanish on the frame's tone. Declared once,
+   here, next to .stage-play's existing literals; the call sites keep using
+   their role names, so the bar, the pill, the tools, the timecode, the kbd
+   chips and the scrubber all follow without a single per-rule override. */
+.stage-shell[data-fs] {
+  --pl-void: #0e1512;                        /* .stage-frame's tone */
+  --pl-ink: #fdfcf9;
+  --pl-ink-dim: rgba(253, 252, 249, 0.72);
+  --pl-fill: rgba(253, 252, 249, 0.14);
+  --pl-line: rgba(253, 252, 249, 0.34);
+  --on-surface: var(--pl-ink);
+  --on-variant: var(--pl-ink-dim);
+  --container-hi: var(--pl-fill);
+  --surface: rgba(253, 252, 249, 0.08);
+  --outline: var(--pl-line);
+  --outline-var: var(--pl-line);
+  /* these three are the DARK theme's values, and for the same reason it has
+     them: the surface under the chrome is now #0e1512, so the light theme's
+     #8a6508 seek dot and #12523f focus ring would be dark ink on dark ink */
+  --primary: #4dc397;
+  --accent: #e7ba55;
+  --tertiary: #e7ba55;
+  background: var(--pl-void);
+  border-radius: 0; box-shadow: none;
+  display: flex; flex-direction: column; height: 100%; max-width: none;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+           env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+/* iOS / anything without element fullscreen: the same layout, pinned */
+.stage-shell[data-fs="fixed"] { position: fixed; inset: 0; z-index: 90; }
+/* the chrome keeps a readable width on a 2560px display; the PICTURE does not —
+   it is the one thing here that deserves the whole screen */
+.stage-shell[data-fs] .stage-bar,
+.stage-shell[data-fs] .progress-track,
+.stage-shell[data-fs] .ctl-row { width: 100%; max-width: var(--container-max); margin-inline: auto; }
+/* The holder takes what the two chrome rows leave and the frame fills it — a
+   continuous void, no aspect ratio to resolve in CSS — while the CANVAS is
+   fitted inside by its own intrinsic size (auto + both max constraints), which
+   is how a replaced element letterboxes itself without distortion.
+   Deliberately a fit, not a stretch: the bitmap is 450x800, so letting the box
+   drive the canvas would blow a 400px-wide picture up to 2000 on a desktop and
+   the clip's type would mush. Fullscreen shows the biggest picture the raster
+   can honestly give (~448x796 on a 1440x900 screen, 0.99x of the bitmap) —
+   scaling the RASTER so this can grow again is phase 12.5, not this. */
+.stage-shell[data-fs] .stage-holder { flex: 1; min-height: 0; padding: 0; }
+.stage-shell[data-fs] .stage-frame {
+  width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0;
+  align-items: center; justify-content: center;
+}
+.stage-shell[data-fs] .stage-frame #stage {
+  width: auto; height: auto; max-width: 100%; max-height: 100%;
+  aspect-ratio: auto; object-fit: contain; align-self: center;
+}
 
 @media (max-width: 639px) {
   .wrap { padding: 2.25rem var(--gutter) 3.5rem; }
@@ -659,6 +736,14 @@ html[data-walk] .walk-ctl[hidden] { display: flex; }
 @media (hover: hover) and (pointer: fine) and (min-width: 720px) {
   .ctl-hint { display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
 }
+/* the F chip is the one part of the hint the row can live without: at the 345px
+   column the 900px tier resolves to, this row has 321px and the rest of the hint
+   plus the timecode and both buttons want 291 — 30px of slack, against 5px with
+   F in. The toggle's own `title` carries the shortcut below 1000px. */
+.ctl-hint .h-f { display: none; }
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
+  .ctl-hint .h-f { display: inline; }
+}
 kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--outline-var); background: var(--surface); color: var(--on-variant); }
 
 /* tool buttons: the product actions, now at home in the stage bar (spec §13.4)
@@ -666,13 +751,13 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
    used to carry are in `title` + `aria-label`, and the copy feedback is the
    `.copied` fill plus the snackbar, so the state reads without a label slot. */
 .tool-btn {
-  display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0;
   border: 0; border-radius: 999px; background: var(--container-hi); color: var(--on-surface);
   cursor: pointer;
   transition: box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 .tool-btn:hover { box-shadow: var(--e1); }
-.tool-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.tool-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 .tool-btn.copied { background: var(--success-container); color: var(--on-primary-container); }
 
 /* script head, chat-bubble beats and the visual plan (mock §8) */
@@ -873,6 +958,11 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
      the air it gains there is vertical; the side inset is only a floor that
      keeps the frame off the card's edges at 320 */
   .stage-holder { padding: 14px 10px; }
+  /* the bar's five controls come to 279px against the 281 the 360px card can
+     offer: enough to sit on one line, not enough to trust to font rounding, so
+     a phone buys 12px of slack by tightening its own gaps instead of dropping
+     a control */
+  .stage-bar { gap: 4px; padding-left: 8px; }
 }
 /* declared after the 719 tier so the wrap rule's smaller thumb wins at 380 */
 @media (max-width: 380px) { .upnext-thumb { width: 64px; height: 64px; } }

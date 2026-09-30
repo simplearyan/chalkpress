@@ -7,9 +7,12 @@
 // seamlessly into test-renderer's AI tab — code, name, aspect AND duration.
 //
 // Chrome follows the reference mock's device card: a tonal card whose only dark
-// surface is the frame, an aspect pill and the product actions (copy code / AI
-// prompt / renderer) in one bar, 44px round controls with a glyph per data-state
-// in the transport row, and nothing else between the picture and the script.
+// surface is the frame, an aspect pill, a fullscreen toggle and the product
+// actions (copy code / AI prompt / renderer) in one bar, 44px round controls
+// with a glyph per data-state in the transport row, and nothing else between the
+// picture and the script. Fullscreen turns the CARD into a void with the picture
+// centred in it — see the CSS block, which also says why it is the card and not
+// the frame.
 import { compileStoryboard } from '../../../runtime/hic-storyboard.esm.js';
 import { clipToFenced, buildAiPrompt } from '../lib/animation-prompt.js';
 import { base } from '../lib/url.js';
@@ -82,10 +85,21 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
       </button>
     </div>
+    {/* fullscreen: the frame's own size control, so it sits with the aspect
+        pill rather than the product actions. Two glyphs, swapped by CSS on
+        [data-fs] — same pattern as the play/pause/replay glyphs. */}
+    <button id="btn-fs" class="tool-btn btn-fs" type="button" aria-pressed="false"
+      aria-keyshortcuts="F" aria-label="Fullscreen" title="Fullscreen (F)">
+      <svg class="i-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M16 3h3a2 2 0 0 1 2 2v3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" /><path d="M8 21H5a2 2 0 0 1-2-2v-3" /></svg>
+      <svg class="i-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3" /><path d="M16 3v3a2 2 0 0 0 2 2h3" /><path d="M16 21v-3a2 2 0 0 1 2-2h3" /><path d="M8 21v-3a2 2 0 0 0-2-2H3" /></svg>
+    </button>
   </div>
 
   <div class="stage-holder">
-    <div class="stage-frame" id="stage-frame" data-aspect={ds}>
+    {/* The frame is a tab stop so `F` has something to act on and the picture
+        is reachable without a pointer; `aria-keyshortcuts` advertises it. */}
+    <div class="stage-frame" id="stage-frame" data-aspect={ds} tabindex="0"
+      role="img" aria-keyshortcuts="F">
       <canvas id={id} data-aspect={ds} width={cw} height={ch}></canvas>
       <button id="stage-play" class="stage-play" type="button" tabindex="-1" aria-hidden="true">
         <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg></span>
@@ -109,8 +123,8 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
     {/* keyboard discoverability, folded into this row's dead space so it costs
         no height — CSS shows it on fine pointers at ≥720px only (spec §7). The
         arrows refer to the focused native range (the scrubber). */}
-    <span class="ctl-hint" title="K: play / pause · R: restart · arrow keys: seek">
-      <kbd>K</kbd> <kbd>R</kbd> <kbd>←</kbd><kbd>→</kbd>
+    <span class="ctl-hint" title="K: play / pause · R: restart · F: fullscreen · arrow keys: seek">
+      <kbd>K</kbd> <kbd>R</kbd> <kbd class="h-f">F</kbd> <kbd>←</kbd><kbd>→</kbd>
     </span>
     <button id="btn-reset" class="pl-btn" type="button" aria-label="Restart from beginning" title="Restart" aria-keyshortcuts="R">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
@@ -276,17 +290,93 @@ const [cw, ch] = ds === '9:16' ? [450, 800] : [800, 450];
       const g = e.target;
       if (g && (/^(INPUT|TEXTAREA|SELECT)$/.test(g.tagName) || g.isContentEditable)) return;
       const k = e.key.toLowerCase();
-      if (k !== 'k' && k !== 'r') return;
+      if (k !== 'k' && k !== 'r' && k !== 'f') return;
       const r = shell.getBoundingClientRect();
       const visible = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
       if (visible < Math.min(r.height, innerHeight) * 0.4) return;
       e.preventDefault();
       if (k === 'k') btnPlay.click();
+      else if (k === 'f') { shell.dataset.fs ? exitFs() : enterFs(); }
       else {
         const was = shell.dataset.state === 'playing';
         document.getElementById('btn-reset').click();
         if (was) btnPlay.click();
       }
+    });
+
+    /* ── fullscreen (phase 12.4). The CSS block explains why the CARD is what
+          expands; this is the state machine. Two mechanisms, one state: the real
+          Fullscreen API where it exists, and a scroll-locked fixed overlay where
+          it does not (iOS refuses element fullscreen for anything but <video>).
+          `data-fs` is what the CSS, aria-pressed and the glyph are keyed to, so
+          both paths stay in step — and a browser without :fullscreen support
+          still gets the whole feature. ── */
+    const btnFs = document.getElementById('btn-fs');
+    let fsScroll = 0, fsWatch = 0;
+    function setFs(mode) {
+      if (mode) shell.dataset.fs = mode;
+      else delete shell.dataset.fs;
+      /* the scroll lock belongs to the fixed overlay, never to real fullscreen */
+      document.documentElement.style.overflow = mode === 'fixed' ? 'hidden' : '';
+      btnFs.setAttribute('aria-pressed', mode ? 'true' : 'false');
+      btnFs.setAttribute('aria-label', mode ? 'Exit fullscreen' : 'Fullscreen');
+      btnFs.title = mode ? 'Exit fullscreen (F)' : 'Fullscreen (F)';
+    }
+    function fixedFs() {
+      clearTimeout(fsWatch);
+      setFs('fixed');
+      frame.focus({ preventScroll: true });
+    }
+    function enterFs() {
+      if (shell.dataset.fs) return;
+      /* the shell leaves the flow while it is fullscreen, so the document gets
+         shorter behind it — remember where the reader was before that */
+      fsScroll = window.scrollY;
+      /* The overlay is what the click gets, immediately. Real fullscreen is an
+         UPGRADE on top of it: while an async request is pending the reader is
+         already looking at the expanded card, so a slow or refused request can
+         never leave a button that appears to do nothing. Never awaited — a
+         request that neither resolves nor rejects (the Freebuff preview webview
+         does exactly that) must not strand the reader outside the feature. */
+      fixedFs();
+      if (!(document.fullscreenEnabled && shell.requestFullscreen)) return;
+      let req = null;
+      try { req = shell.requestFullscreen(); } catch (e) { return; }
+      if (req && req.catch) req.catch(() => {});
+    }
+    function exitFs() {
+      if (shell.dataset.fs === 'native' && document.fullscreenElement) {
+        const req = document.exitFullscreen();
+        if (req && req.catch) req.catch(leaveFs);
+        return;
+      }
+      leaveFs();
+    }
+    function leaveFs() {
+      clearTimeout(fsWatch);
+      /* a request that landed after the reader already left would otherwise put
+         them back in fullscreen with the overlay's state already cleared */
+      if (document.fullscreenElement === shell && document.exitFullscreen) {
+        try { const r = document.exitFullscreen(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+      }
+      setFs(null);
+      if (fsScroll) { window.scrollTo(0, fsScroll); fsScroll = 0; }
+      btnFs.focus({ preventScroll: true });   /* back to the control that opened it */
+    }
+    /* Esc (and the browser's own exit affordance) reach us here, not through
+       the button: entering moves focus into the frame, which is what F acts on */
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement === shell) {
+        setFs('native');
+        frame.focus({ preventScroll: true });
+      } else if (shell.dataset.fs === 'native') leaveFs();
+    });
+    btnFs.addEventListener('click', () => (shell.dataset.fs ? exitFs() : enterFs()));
+    /* double-click the picture — the reference's other fullscreen gesture */
+    frame.addEventListener('dblclick', () => { shell.dataset.fs ? exitFs() : enterFs(); });
+    /* the fixed overlay has no native Esc handling of its own */
+    addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && shell.dataset.fs === 'fixed') { e.preventDefault(); leaveFs(); }
     });
 
     /* ── aspect: re-frame the preview (the clip is re-rasterised at the new
