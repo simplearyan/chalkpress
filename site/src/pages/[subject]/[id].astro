@@ -304,7 +304,15 @@ const clip = storyboard ? compileStoryboard(storyboard) : null;
           </span>
         </a>
       )}
-      <a class="btn text upnext-library-link" href={link('/')}>← Back to Shorts library</a>
+      {/* the quiet exit from Up next (mock §10): the mock keeps this a plain
+          centred link rather than a second button, so the card above stays the
+          only thing on the section that reads as an action. The arrow is the
+          mock's own glyph — a text "←" sits at a different weight and thickness
+          in every fallback font. */}
+      <a class="upnext-library-link" href={link('/')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="m11 18-6-6 6-6" /></svg>
+        <span>Back to Shorts library</span>
+      </a>
     </div>
   </section>
 </Base>

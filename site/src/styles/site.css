@@ -916,7 +916,23 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
 }
 .upnext-arrow svg { width: 15px; height: 15px; }
 .upnext-card:hover .upnext-arrow { background: var(--primary); border-color: var(--primary); color: #fdfcf9; transform: translateX(2px); }
-.upnext-library-link { margin-top: 16px; }
+/* the up-next card's quiet exit (mock §10): a centred mono link, not a second
+   button — the card above keeps being the only thing on the section that reads
+   as an action. Its own arrow instead of a text "←" (which renders at a
+   different weight in every fallback font), and 44px tall so the tap target
+   matches every other control without drawing a pill around it. */
+.upnext-library-link {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: max-content; max-width: 100%; min-height: 44px;
+  margin: 4px auto 0; padding: 0 16px;
+  border-radius: 999px; text-decoration: none;
+  font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.02em;
+  color: var(--on-variant);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.upnext-library-link svg { width: 16px; height: 16px; flex-shrink: 0; transition: transform 0.15s ease; }
+.upnext-library-link:hover { color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.upnext-library-link:hover svg { transform: translateX(-2px); }
 
 /* very narrow phones: poster above, title + arrow share the bottom row */
 @media (max-width: 380px) {
@@ -924,6 +940,9 @@ kbd { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; padding: 1p
   .upnext-meta { width: calc(100% - 84px); text-align: left; }
   .upnext-meta .u-sub { font-size: 0.8rem; }
   .upnext-arrow { margin-left: auto; }
+  /* the link becomes a full-width row: centred text still, but the whole foot
+     of the section is the target rather than a 150px pill */
+  .upnext-library-link { width: 100%; }
 }
 
 /* ── controls + progress: built inside .stage-shell (see above) ── */
